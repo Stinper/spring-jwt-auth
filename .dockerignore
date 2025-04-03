@@ -1,0 +1,14 @@
+.gradle/
+build/
+!*/build/libs/*.jar
+
+*.iml
+.idea/
+.vscode/
+*.log
+*.bak
+
+.DS_Store
+
+test-results/
+out/
