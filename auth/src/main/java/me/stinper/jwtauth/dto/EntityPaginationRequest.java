@@ -2,6 +2,9 @@ package me.stinper.jwtauth.dto;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,22 +14,25 @@ public record EntityPaginationRequest(
 
         @Parameter(
                 in = ParameterIn.QUERY,
-                name = "page",
-                description = "Номер страницы с записями. Номера начинаются с 0",
+                description = "Номер страницы с записями",
                 example = "0",
-                required = true
+                required = true,
+                schema = @Schema(minLength = 0, type = "int")
         )
         @NotNull(message = "{messages.entity-pagination-request.page.null}")
+        @Min(value = 0, message = "{messages.entity-pagination-request.validation.page.negative}")
         Integer page,
 
         @Parameter(
                 in = ParameterIn.QUERY,
-                name = "size",
                 description = "Количество записей, которое будет отображаться на одной странице",
                 example = "10",
-                required = true
+                required = true,
+                schema = @Schema(minLength = 0, maxLength = 100, type = "int")
         )
         @NotNull(message = "{messages.entity-pagination-request.size.null}")
+        @Min(value = 0, message = "{messages.entity-pagination-request.validation.size.negative}")
+        @Max(value = 100, message = "{messages.entity-pagination-request.validation.size.too-big}")
         Integer size,
 
         @Parameter(
