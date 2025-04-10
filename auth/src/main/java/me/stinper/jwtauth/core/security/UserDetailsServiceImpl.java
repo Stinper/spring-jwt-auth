@@ -1,13 +1,12 @@
 package me.stinper.jwtauth.core.security;
 
 import lombok.RequiredArgsConstructor;
+import me.stinper.jwtauth.core.security.jwt.JwtAuthUserDetails;
 import me.stinper.jwtauth.repository.UserRepository;
 import me.stinper.jwtauth.utils.MessageSourceHelper;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

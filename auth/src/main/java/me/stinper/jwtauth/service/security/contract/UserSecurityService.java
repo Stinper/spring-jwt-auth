@@ -1,6 +1,6 @@
 package me.stinper.jwtauth.service.security.contract;
 
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
+import me.stinper.jwtauth.core.security.jwt.JwtAuthUserDetails;
 import org.springframework.lang.NonNull;
 
 import java.util.UUID;

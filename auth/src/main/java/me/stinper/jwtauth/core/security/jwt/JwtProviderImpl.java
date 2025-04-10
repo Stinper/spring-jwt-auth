@@ -1,13 +1,11 @@
-package me.stinper.jwtauth.core.jwt;
+package me.stinper.jwtauth.core.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.PublicKey;
@@ -18,7 +16,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.UUID;
 
 @Service
 public class JwtProviderImpl implements JwtProvider {

@@ -1,6 +1,6 @@
 package me.stinper.jwtauth.service.security;
 
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
+import me.stinper.jwtauth.core.security.jwt.JwtAuthUserDetails;
 import me.stinper.jwtauth.service.security.contract.UserSecurityService;
 import me.stinper.jwtauth.utils.SecurityUtils;
 import org.springframework.lang.NonNull;

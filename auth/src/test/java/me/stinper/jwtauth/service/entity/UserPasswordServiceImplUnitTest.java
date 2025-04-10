@@ -1,12 +1,10 @@
 package me.stinper.jwtauth.service.entity;
 
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
 import me.stinper.jwtauth.dto.user.PasswordChangeRequest;
 import me.stinper.jwtauth.entity.User;
 import me.stinper.jwtauth.exception.EntityValidationException;
 import me.stinper.jwtauth.repository.UserRepository;
 import me.stinper.jwtauth.service.authentication.contract.JwtService;
-import me.stinper.jwtauth.service.entity.UserPasswordServiceImpl;
 import me.stinper.jwtauth.validation.PasswordChangeValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -2,8 +2,8 @@ package me.stinper.jwtauth.service.authentication;
 
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
-import me.stinper.jwtauth.core.jwt.JwtProvider;
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
+import me.stinper.jwtauth.core.security.jwt.JwtProvider;
+import me.stinper.jwtauth.core.security.jwt.JwtAuthUserDetails;
 import me.stinper.jwtauth.dto.JwtResponse;
 import me.stinper.jwtauth.dto.RefreshAccessTokenRequest;
 import me.stinper.jwtauth.entity.RefreshToken;

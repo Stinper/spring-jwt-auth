@@ -10,12 +10,11 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import me.stinper.jwtauth.core.Headers;
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
+import me.stinper.jwtauth.core.security.jwt.JwtAuthUserDetails;
 import me.stinper.jwtauth.dto.JwtResponse;
 import me.stinper.jwtauth.dto.user.LoginRequest;
 import me.stinper.jwtauth.service.authentication.contract.AuthService;
 import me.stinper.jwtauth.service.entity.contract.IdempotencyService;
-import me.stinper.jwtauth.core.swagger.AuthorizationHeaderDescription;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -95,9 +94,11 @@ public class AuthController {
                             description = "Токен успешно инвалидирован",
                             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
                     ),
+            },
+            parameters = {
+                    @Parameter(ref = "Authorization")
             }
     )
-    @AuthorizationHeaderDescription
     public ResponseEntity<?> logout(@AuthenticationPrincipal JwtAuthUserDetails userDetails) {
         authService.logout(userDetails);
         return ResponseEntity.ok().build();

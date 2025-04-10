@@ -14,11 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class RoleInitializationService implements InitializationService<Role> {
     private final RoleRepository roleRepository;
     private final String adminRoleName;
+    private final String adminRolePrefix;
 
     public RoleInitializationService(RoleRepository roleRepository,
-                                     @Value("${app.auth.security.admin-role-name}") String adminRoleName) {
+                                     @Value("${app.auth.security.admin-role-name}") String adminRoleName,
+                                     @Value("${app.auth.security.admin-role-prefix}") String adminRolePrefix) {
         this.roleRepository = roleRepository;
         this.adminRoleName = adminRoleName;
+        this.adminRolePrefix = adminRolePrefix;
     }
 
     @Override
@@ -31,6 +34,7 @@ public class RoleInitializationService implements InitializationService<Role> {
 
         Role role = Role.builder()
                 .roleName(this.adminRoleName)
+                .prefix(this.adminRolePrefix)
                 .build();
 
         role = roleRepository.save(role);

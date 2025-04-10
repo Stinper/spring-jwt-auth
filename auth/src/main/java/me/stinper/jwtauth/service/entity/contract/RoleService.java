@@ -1,5 +1,6 @@
 package me.stinper.jwtauth.service.entity.contract;
 
+import me.stinper.jwtauth.dto.role.RolePermissionUpdateRequest;
 import me.stinper.jwtauth.dto.role.RoleCreationRequest;
 import me.stinper.jwtauth.dto.role.RoleDto;
 import me.stinper.jwtauth.exception.RelatedEntityExistsException;
@@ -27,6 +28,8 @@ public interface RoleService {
      * @see RoleCreationRequest
      */
     RoleDto create(@NonNull RoleCreationRequest roleCreationRequest);
+
+    RoleDto updatePermissions(@NonNull String roleName, @NonNull RolePermissionUpdateRequest permissionUpdateRequest);
 
     /**
      * Удалять роль с заданным именем из базы данных. Для обеспечения целостности данных,

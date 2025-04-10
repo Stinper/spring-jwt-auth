@@ -1,6 +1,7 @@
 package me.stinper.jwtauth.service.entity;
 
 import me.stinper.jwtauth.dto.EntityPaginationRequest;
+import me.stinper.jwtauth.dto.permission.PermissionDto;
 import me.stinper.jwtauth.dto.role.RoleDto;
 import me.stinper.jwtauth.dto.user.UserCreationRequest;
 import me.stinper.jwtauth.dto.user.UserDto;
@@ -273,7 +274,7 @@ class UserServiceImplUnitTest {
                 .password("123")
                 .roles(
                         List.of(
-                                new Role(1L, "ROLE_ADMIN")
+                                new Role(1L, "ROLE_ADMIN", "Администратор", Collections.emptyList())
                         )
                 )
                 .build();
@@ -295,7 +296,21 @@ class UserServiceImplUnitTest {
                             Optional.ofNullable(user.getRoles())
                                     .map(roles ->
                                             roles.stream()
-                                                    .map(role -> new RoleDto(role.getId(), role.getRoleName()))
+                                                    .map(role -> new RoleDto(
+                                                            role.getId(),
+                                                            role.getRoleName(),
+                                                            role.getPrefix(),
+                                                            Optional.ofNullable(role.getPermissions())
+                                                                    .map(permissions -> permissions.stream()
+                                                                            .map(permission -> new PermissionDto(
+                                                                                    permission.getId(),
+                                                                                    permission.getPermission(),
+                                                                                    permission.getDescription()
+                                                                            ))
+                                                                            .toList()
+                                                                    )
+                                                                    .orElse(Collections.emptyList())
+                                                    ))
                                                     .toList()
                                     )
                                     .orElse(Collections.emptyList()))

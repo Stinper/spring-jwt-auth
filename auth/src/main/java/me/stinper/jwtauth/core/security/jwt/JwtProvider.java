@@ -1,12 +1,9 @@
-package me.stinper.jwtauth.core.jwt;
+package me.stinper.jwtauth.core.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
 import io.jsonwebtoken.JwtException;
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
 import org.springframework.lang.NonNull;
-
-import java.util.UUID;
 
 /**
  * Интерфейс, содержащий методы для генерации и верификации access/refresh токенов

@@ -1,12 +1,11 @@
 package me.stinper.jwtauth.controller;
 
 import jakarta.validation.ConstraintViolationException;
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
+import me.stinper.jwtauth.core.security.jwt.JwtAuthUserDetails;
 import me.stinper.jwtauth.dto.EntityPaginationRequest;
 import me.stinper.jwtauth.dto.user.PasswordChangeRequest;
 import me.stinper.jwtauth.dto.user.UserCreationRequest;
 import me.stinper.jwtauth.dto.user.UserDto;
-import me.stinper.jwtauth.entity.User;
 import me.stinper.jwtauth.exception.EntityValidationException;
 import me.stinper.jwtauth.exception.ResourceNotFoundException;
 import me.stinper.jwtauth.service.entity.contract.UserPasswordService;
@@ -188,7 +187,7 @@ class UserControllerUnitTest {
 
             //THEN
             assertThat(createdUserResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(createdUserResponse.getBody()).isNull();
+            assertThat(createdUserResponse.getBody()).isEqualTo(user);
             assertThat(createdUserResponse.getHeaders().getLocation()).isEqualTo(location);
 
             verify(userService).create(userCreationRequest);

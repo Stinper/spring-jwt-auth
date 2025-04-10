@@ -1,11 +1,10 @@
 package me.stinper.jwtauth.service.authentication.contract;
 
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
+import me.stinper.jwtauth.core.security.jwt.JwtAuthUserDetails;
 import me.stinper.jwtauth.dto.JwtResponse;
 import me.stinper.jwtauth.dto.user.LoginRequest;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 
 /**
  * Сервис, отвечающий за аутентификацию пользователей и выдачу им Access & Refresh токенов

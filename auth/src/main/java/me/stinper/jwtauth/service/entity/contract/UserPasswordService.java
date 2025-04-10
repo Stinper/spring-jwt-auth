@@ -1,6 +1,6 @@
 package me.stinper.jwtauth.service.entity.contract;
 
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
+import me.stinper.jwtauth.core.security.jwt.JwtAuthUserDetails;
 import me.stinper.jwtauth.dto.user.PasswordChangeRequest;
 import org.springframework.lang.NonNull;
 

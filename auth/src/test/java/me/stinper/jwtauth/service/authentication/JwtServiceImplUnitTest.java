@@ -1,7 +1,7 @@
 package me.stinper.jwtauth.service.authentication;
 
 import io.jsonwebtoken.JwtException;
-import me.stinper.jwtauth.core.jwt.JwtProvider;
+import me.stinper.jwtauth.core.security.jwt.JwtProvider;
 import me.stinper.jwtauth.dto.JwtResponse;
 import me.stinper.jwtauth.dto.RefreshAccessTokenRequest;
 import me.stinper.jwtauth.entity.RefreshToken;

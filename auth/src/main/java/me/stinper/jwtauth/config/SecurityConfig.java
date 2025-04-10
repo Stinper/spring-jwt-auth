@@ -1,7 +1,7 @@
 package me.stinper.jwtauth.config;
 
 import lombok.RequiredArgsConstructor;
-import me.stinper.jwtauth.core.security.JwtAuthenticationFilter;
+import me.stinper.jwtauth.core.security.jwt.JwtAuthenticationFilter;
 import me.stinper.jwtauth.service.security.contract.UserSecurityService;
 import me.stinper.jwtauth.service.security.UserSecurityServiceImpl;
 import org.springframework.context.annotation.Bean;

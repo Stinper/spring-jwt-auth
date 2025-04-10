@@ -5,24 +5,35 @@ import lombok.extern.slf4j.Slf4j;
 import me.stinper.jwtauth.core.error.RoleErrorCode;
 import me.stinper.jwtauth.dto.role.RoleCreationRequest;
 import me.stinper.jwtauth.dto.role.RoleDto;
+import me.stinper.jwtauth.dto.role.RolePermissionUpdateRequest;
+import me.stinper.jwtauth.entity.Permission;
 import me.stinper.jwtauth.entity.Role;
 import me.stinper.jwtauth.exception.EntityValidationException;
 import me.stinper.jwtauth.exception.NoSuchPropertyException;
 import me.stinper.jwtauth.exception.RelatedEntityExistsException;
+import me.stinper.jwtauth.exception.ResourceNotFoundException;
 import me.stinper.jwtauth.mapping.RoleMapper;
+import me.stinper.jwtauth.repository.PermissionRepository;
 import me.stinper.jwtauth.repository.RoleRepository;
 import me.stinper.jwtauth.repository.UserRepository;
 import me.stinper.jwtauth.service.entity.contract.RoleService;
+import me.stinper.jwtauth.utils.LoggingUtils;
+import me.stinper.jwtauth.utils.MessageSourceHelper;
 import me.stinper.jwtauth.validation.RoleCreationValidator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Errors;
+import org.springframework.validation.SimpleErrors;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +41,10 @@ import java.util.Optional;
 public class RoleServiceImpl implements RoleService {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
+    private final PermissionRepository permissionRepository;
     private final RoleMapper roleMapper;
     private final RoleCreationValidator roleCreationValidator;
+    private final MessageSourceHelper messageSourceHelper;
 
     @Override
     public Page<RoleDto> findAll(Pageable pageable) {
@@ -76,7 +89,9 @@ public class RoleServiceImpl implements RoleService {
         Errors roleCreationErrors = roleCreationValidator.validateObject(roleCreationRequest);
 
         if (roleCreationErrors.hasFieldErrors()) {
-            log.atWarn().log(() -> "[#create]: Ошибка валидации запроса на создание роли: " + roleCreationErrors.getFieldErrors());
+            log.atDebug().log(() -> "[#create]: Ошибка валидации запроса на создание роли. \n\tСписок ошибок: \n"
+                    + LoggingUtils.logFieldErrorsListLineSeparated(roleCreationErrors.getFieldErrors()));
+
             throw new EntityValidationException(roleCreationErrors.getFieldErrors());
         }
 
@@ -91,6 +106,41 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    public RoleDto updatePermissions(@NonNull String roleName, @NonNull RolePermissionUpdateRequest permissionUpdateRequest) {
+        log.atDebug().log("[#updatePermissions]: Попытка изменения прав доступа для роли '{}'", roleName);
+
+        Role role = roleRepository.findByRoleNameIgnoreCase(roleName)
+                .orElseThrow(() -> {
+                    log.atDebug().log("[#updatePermissions]: Роль с именем '{}' не существует", roleName);
+
+                    return new ResourceNotFoundException(
+                            messageSourceHelper.getLocalizedMessage("messages.role.not-found.role-name", roleName));
+                });
+
+        Errors permissionListValidationErrors = new SimpleErrors(permissionUpdateRequest);
+        roleCreationValidator.validateInputPermissions(permissionUpdateRequest.permissions(), permissionListValidationErrors);
+
+        if (permissionListValidationErrors.hasErrors()) {
+            log.atDebug().log(() -> "[#updatePermissions]: Обнаружены ошибки в списке ролей. \n\tСписок ошибок: \n"
+                    + LoggingUtils.logFieldErrorsListLineSeparated(permissionListValidationErrors.getFieldErrors())
+            );
+
+            throw new EntityValidationException(permissionListValidationErrors.getFieldErrors());
+        }
+
+        List<Permission> permissionList = permissionRepository.findAllByPermissionIn(permissionUpdateRequest.permissions());
+        role.setPermissions(permissionList);
+        role = roleRepository.save(role);
+
+        log.atInfo().log("[#updatePermissions]: Для роли '{}' обновлен список прав доступа. \n\tНовый список прав доступа: {}",
+                roleName, permissionUpdateRequest.permissions()
+        );
+
+        return roleMapper.toRoleDto(role);
+    }
+
+    @Override
+    @Transactional
     public void delete(@NonNull String name) {
         log.atDebug().log("[#delete]: Начало выполнения метода. Имя роли для удаления: {}", name);
 

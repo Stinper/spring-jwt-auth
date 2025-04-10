@@ -2,9 +2,12 @@ package me.stinper.jwtauth.controller;
 
 import jakarta.validation.ConstraintViolationException;
 import me.stinper.jwtauth.dto.EntityPaginationRequest;
+import me.stinper.jwtauth.dto.permission.PermissionDto;
 import me.stinper.jwtauth.dto.role.RoleCreationRequest;
 import me.stinper.jwtauth.dto.role.RoleDto;
+import me.stinper.jwtauth.dto.role.RolePermissionUpdateRequest;
 import me.stinper.jwtauth.exception.RelatedEntityExistsException;
+import me.stinper.jwtauth.exception.ResourceNotFoundException;
 import me.stinper.jwtauth.service.entity.contract.RoleService;
 import me.stinper.jwtauth.testutils.ConstraintViolationMockSupport;
 import me.stinper.jwtauth.testutils.ServletUriComponentsBuilderMockSupport;
@@ -24,6 +27,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -56,6 +60,7 @@ class RoleControllerUnitTest {
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining(errorMessage);
 
+        verify(validator).validate(invalidPaginationRequest);
         verifyNoInteractions(roleService);
     }
 
@@ -69,8 +74,8 @@ class RoleControllerUnitTest {
 
         Pageable pageable = validEntityPaginationRequest.buildPageableFromRequest();
 
-        final RoleDto firstRole = new RoleDto(1L, "ROLE_USER"),
-                secondRole = new RoleDto(2L, "ROLE_ADMIN");
+        final RoleDto firstRole = new RoleDto(1L, "ROLE_USER", "Пользователь", Collections.emptyList()),
+                secondRole = new RoleDto(2L, "ROLE_ADMIN", "Администратор", Collections.emptyList());
 
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         when(roleService.findAll(pageable)).thenReturn(
@@ -86,6 +91,7 @@ class RoleControllerUnitTest {
                 .hasSize(2)
                 .contains(firstRole, secondRole);
 
+        verify(validator).validate(validEntityPaginationRequest);
         verify(roleService).findAll(pageable);
     }
 
@@ -94,7 +100,7 @@ class RoleControllerUnitTest {
     void findByRoleName_whenRoleExists_thenReturnsRoleDto() {
         //GIVEN
         final String roleName = "ROLE_USER";
-        final RoleDto roleDto = new RoleDto(1L, roleName);
+        final RoleDto roleDto = new RoleDto(1L, roleName, "Пользователь", Collections.emptyList());
 
         when(roleService.findByName(roleName)).thenReturn(Optional.of(roleDto));
 
@@ -129,7 +135,7 @@ class RoleControllerUnitTest {
     void create_whenRoleCreationRequestValidationFails_thenThrowsException() {
         //GIVEN
         RoleCreationRequest invalidRoleCreationRequest = new RoleCreationRequest(
-                "MANAGER"
+                "MANAGER", "Менеджер", Collections.emptySet()
         );
 
         final String errorMessage = "Error message";
@@ -143,6 +149,7 @@ class RoleControllerUnitTest {
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining(errorMessage);
 
+        verify(validator).validate(invalidRoleCreationRequest);
         verifyNoInteractions(roleService);
     }
 
@@ -151,10 +158,10 @@ class RoleControllerUnitTest {
     void create_whenRoleCreationRequestIsValid_thenReturnsResult() {
         //GIVEN
         final RoleCreationRequest roleCreationRequest = new RoleCreationRequest(
-                "ROLE_USER"
+                "ROLE_USER", "Пользователь", Collections.emptySet()
         );
 
-        final RoleDto roleDto = new RoleDto(1L, "ROLE_USER");
+        final RoleDto roleDto = new RoleDto(1L, "ROLE_USER", "Пользователь", Collections.emptyList());
 
         final URI location = URI.create("http://localhost:8080/api/v1/jwt-auth/roles/" + roleDto.roleName());
 
@@ -167,11 +174,79 @@ class RoleControllerUnitTest {
 
             //THEN
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-            assertThat(result.getBody()).isNull();
+            assertThat(result.getBody()).isEqualTo(roleDto);
             assertThat(result.getHeaders().getLocation()).isEqualTo(location);
 
+            verify(validator).validate(roleCreationRequest);
             verify(roleService).create(roleCreationRequest);
         });
+    }
+
+
+    @Test
+    void updatePermissions_whenRolePermissionUpdateRequestValidationFails_thenThrowsException() {
+        //GIVEN
+        final RolePermissionUpdateRequest updateRequest = new RolePermissionUpdateRequest(
+                Set.of("some.permission")
+        );
+
+        final String errorMessage = "Error message";
+
+        ConstraintViolationMockSupport.mockValidatorToReturnSingleConstraintViolation(
+                validator, errorMessage, updateRequest);
+
+        //WHEN & THEN
+        assertThatThrownBy(() -> roleController.updatePermissions("roleName", updateRequest))
+                .isInstanceOf(ConstraintViolationException.class)
+                .hasMessageContaining(errorMessage);
+
+        verify(validator).validate(updateRequest);
+        verifyNoInteractions(roleService);
+    }
+
+
+    @Test
+    void updatePermissions_whenRoleDoesNotExists_thenThrowsException() {
+        //GIVEN
+        when(roleService.updatePermissions(anyString(), any())).thenThrow(ResourceNotFoundException.class);
+        when(validator.validate(any())).thenReturn(Collections.emptySet());
+
+        //WHEN & THEN
+        assertThatThrownBy(() -> roleController.updatePermissions("roleName", mock(RolePermissionUpdateRequest.class)))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(validator).validate(any());
+        verify(roleService).updatePermissions(anyString(), any());
+    }
+
+
+    @Test
+    void updatePermissions_whenRolePermissionUpdateRequestIsValid_thenReturnsUpdatedRoleDto() {
+        //GIVEN
+        final RolePermissionUpdateRequest updateRequest = new RolePermissionUpdateRequest(
+                Set.of("some.permission")
+        );
+
+        final RoleDto role = new RoleDto(1L, "ROLE_ADMIN", "Администратоп",
+                List.of(
+                        new PermissionDto(1L, "some.permission", null)
+                )
+        );
+
+        final String roleName = "ROLE_ADMIN";
+
+        when(validator.validate(updateRequest)).thenReturn(Collections.emptySet());
+        when(roleService.updatePermissions(roleName, updateRequest)).thenReturn(role);
+
+        //WHEN
+        ResponseEntity<RoleDto> response = roleController.updatePermissions(roleName, updateRequest);
+
+        //THEN
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(role);
+
+        verify(validator).validate(updateRequest);
+        verify(roleService).updatePermissions(roleName, updateRequest);
     }
 
 

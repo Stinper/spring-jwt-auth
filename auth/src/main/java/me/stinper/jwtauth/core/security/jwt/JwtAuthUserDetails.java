@@ -1,4 +1,4 @@
-package me.stinper.jwtauth.core.security;
+package me.stinper.jwtauth.core.security.jwt;
 
 import org.springframework.lang.Nullable;
 import org.springframework.security.core.userdetails.UserDetails;

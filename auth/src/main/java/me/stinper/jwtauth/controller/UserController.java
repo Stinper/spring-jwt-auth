@@ -11,8 +11,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
-import me.stinper.jwtauth.core.swagger.AuthorizationHeaderDescription;
+import me.stinper.jwtauth.core.security.jwt.JwtAuthUserDetails;
+import me.stinper.jwtauth.core.security.permission.annotation.OperationPermission;
+import me.stinper.jwtauth.core.security.permission.annotation.Permissions;
 import me.stinper.jwtauth.dto.EntityPaginationRequest;
 import me.stinper.jwtauth.dto.user.PasswordChangeRequest;
 import me.stinper.jwtauth.dto.user.UserCreationRequest;
@@ -21,7 +22,6 @@ import me.stinper.jwtauth.service.entity.contract.UserPasswordService;
 import me.stinper.jwtauth.service.entity.contract.UserService;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,24 +45,26 @@ public class UserController {
     private final jakarta.validation.Validator validator;
 
     @GetMapping
+    @Permissions(permissions = {
+            @OperationPermission(
+                    permission = "user.read.find-all-users",
+                    description = "Пользователь с этим правом может просматривать список всех не деактивированных пользователей"
+            ),
+            @OperationPermission(
+                    permission = "user.read.read-deactivated-users",
+                    description = "Пользователь с этим правом может просматривать тех пользователей, чья учетная запись была деактивирована"
+            )
+    })
     @Operation(
             summary = "Получение всех пользователей",
-            description =
-                    """
-                    Предназначен для получения всех пользователей в постраничном формате, т.е. с использованием пагинации
-                    """,
+            description = "Предназначен для получения всех пользователей в постраничном формате, т.е. с использованием пагинации",
             responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Успешное выполнение операции",
-                            content = @Content(
-                                    schema = @Schema(implementation = PagedModel.class),
-                                    mediaType = MediaType.APPLICATION_JSON_VALUE
-                            )
-                    )
+                    @ApiResponse(responseCode = "200", ref = "PagedOK")
+            },
+            parameters = {
+                    @Parameter(ref = "Authorization")
             }
     )
-    @AuthorizationHeaderDescription
     public ResponseEntity<Page<UserDto>> findAll(@ModelAttribute @ParameterObject EntityPaginationRequest entityPaginationRequest) {
         Set<ConstraintViolation<EntityPaginationRequest>> constraintViolations = this.validator.validate(entityPaginationRequest);
 
@@ -75,12 +77,13 @@ public class UserController {
 
 
     @GetMapping("/{uuid}")
+    @OperationPermission(
+            permission = "user.read.find-by-uuid",
+            description = "Пользователь с этим правом может получить пользователя по его идентификатору"
+    )
     @Operation(
             summary = "Получение пользователя по UUID",
-            description =
-                    """
-                    Предназначен для получения одного пользователя по его уникальному идентификатору (UUID)
-                    """,
+            description = "Предназначен для получения одного пользователя по его уникальному идентификатору (UUID)",
             parameters = {
                     @Parameter(
                             name = "uuid",
@@ -88,7 +91,8 @@ public class UserController {
                             example = "01955bac-754c-7d9c-887d-76e2426ddd71",
                             required = true,
                             in = ParameterIn.PATH
-                    )
+                    ),
+                    @Parameter(ref = "Authorization")
             },
             responses = {
                     @ApiResponse(
@@ -99,16 +103,9 @@ public class UserController {
                                     mediaType = MediaType.APPLICATION_JSON_VALUE
                             )
                     ),
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Пользователь с таким UUID не найден",
-                            content = @Content(
-                                    mediaType = MediaType.APPLICATION_JSON_VALUE
-                            )
-                    )
+                    @ApiResponse(responseCode = "404", ref = "NotFound")
             }
     )
-    @AuthorizationHeaderDescription
     public ResponseEntity<UserDto> findById(@PathVariable UUID uuid) {
         return userService.findByUUID(uuid)
                 .map(ResponseEntity::ok)
@@ -120,10 +117,7 @@ public class UserController {
     @PostMapping
     @Operation(
             summary = "Создание пользователя",
-            description =
-                    """
-                    Предназначен для создания (регистрации) нового пользователя
-                    """,
+            description = "Предназначен для создания (регистрации) нового пользователя",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные, необходимые для создания нового пользователя",
                     content = @Content(
@@ -133,19 +127,7 @@ public class UserController {
                     required = true
             ),
             responses = {
-                    @ApiResponse(
-                            responseCode = "201", //Created
-                            description = "Пользователь успешно создан",
-                            content = @Content(
-                                    mediaType = MediaType.APPLICATION_JSON_VALUE
-                            ),
-                            headers = {
-                                    @Header(
-                                            name = "Location",
-                                            description = "Расположение (URI) только что созданного пользователя "
-                                    )
-                            }
-                    )
+                @ApiResponse(responseCode = "201", ref = "Created")
             }
     )
     public ResponseEntity<?> create(@RequestBody UserCreationRequest userCreationRequest) {
@@ -161,12 +143,18 @@ public class UserController {
                 .buildAndExpand(user.uuid())
                 .toUri();
 
-        return ResponseEntity.created(location).build();
+        return ResponseEntity
+                .created(location)
+                .body(user);
     }
 
 
 
     @DeleteMapping("/{uuid}")
+    @OperationPermission(
+            permission = "user.delete.deactivate-by-uuid",
+            description = "Пользователь с этим правом может деактивировать учетную запись пользователя по его идентификатору"
+    )
     @PreAuthorize("@userSecurityService.isAllowedToDeleteAccount(#uuid, principal)")
     @Operation(
             summary = "Удаление пользователя",
@@ -183,19 +171,13 @@ public class UserController {
                             example = "01955bac-754c-7d9c-887d-76e2426ddd71",
                             required = true,
                             in = ParameterIn.PATH
-                    )
+                    ),
+                    @Parameter(ref = "Authorization")
             },
             responses = {
-                    @ApiResponse(
-                            responseCode = "204", //No Content
-                            description = "Пользователь был успешно удален (деактивирован)",
-                            content = @Content(
-                                    mediaType = MediaType.APPLICATION_JSON_VALUE
-                            )
-                    ),
+                @ApiResponse(responseCode = "204", ref = "NoContent")
             }
     )
-    @AuthorizationHeaderDescription
     public ResponseEntity<?> deleteByUUID(@PathVariable UUID uuid) {
         userService.deleteByUUID(uuid);
         return ResponseEntity.noContent().build();
@@ -206,10 +188,7 @@ public class UserController {
     @PatchMapping("/password")
     @Operation(
             summary = "Смена пароля",
-            description =
-                    """
-                    Предназначен для смены пароля от учетной записи
-                    """,
+            description = "Предназначен для смены пароля от учетной записи",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные, необходимые для смены пароля",
                     content = @Content(
@@ -219,16 +198,12 @@ public class UserController {
                     required = true
             ),
             responses = {
-                    @ApiResponse(
-                            responseCode = "204", //No Content
-                            description = "Пароль пользователя был успешно изменен",
-                            content = @Content(
-                                    mediaType = MediaType.APPLICATION_JSON_VALUE
-                            )
-                    )
+                @ApiResponse(responseCode = "204", ref = "NoContent")
+            },
+            parameters = {
+                    @Parameter(ref = "Authorization")
             }
     )
-    @AuthorizationHeaderDescription
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest passwordChangeRequest,
                                             @AuthenticationPrincipal JwtAuthUserDetails userDetails) {
         Set<ConstraintViolation<PasswordChangeRequest>> constraintViolations = this.validator.validate(passwordChangeRequest);
@@ -240,6 +215,4 @@ public class UserController {
 
         return ResponseEntity.noContent().build();
     }
-
-
 }

@@ -1,4 +1,4 @@
-package me.stinper.jwtauth.core.security;
+package me.stinper.jwtauth.core.security.jwt;
 
 import io.jsonwebtoken.*;
 import jakarta.servlet.FilterChain;
@@ -6,7 +6,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import me.stinper.jwtauth.core.jwt.JwtProvider;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

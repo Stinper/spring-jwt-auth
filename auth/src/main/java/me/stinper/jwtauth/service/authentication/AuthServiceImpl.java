@@ -2,7 +2,7 @@ package me.stinper.jwtauth.service.authentication;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
+import me.stinper.jwtauth.core.security.jwt.JwtAuthUserDetails;
 import me.stinper.jwtauth.dto.JwtResponse;
 import me.stinper.jwtauth.dto.user.LoginRequest;
 import me.stinper.jwtauth.entity.User;

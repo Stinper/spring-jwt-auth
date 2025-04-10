@@ -209,7 +209,7 @@ class AdminAccountInitializationServiceUnitTest {
 
 
     private static class TestData {
-        static final Role ADMIN_ROLE = new Role(1L, "ROLE_ADMIN");
+        static final Role ADMIN_ROLE = new Role(1L, "ROLE_ADMIN", "Администратор", Collections.emptyList());
         static final String HASHED_PASSWORD = "$HASHED_PASSWORD$";
         static final User ADMIN_USER = User
                 .builder()

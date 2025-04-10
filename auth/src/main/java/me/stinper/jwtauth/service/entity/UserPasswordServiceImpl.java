@@ -2,14 +2,13 @@ package me.stinper.jwtauth.service.entity;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
+import me.stinper.jwtauth.core.security.jwt.JwtAuthUserDetails;
 import me.stinper.jwtauth.dto.user.PasswordChangeRequest;
 import me.stinper.jwtauth.entity.User;
 import me.stinper.jwtauth.exception.EntityValidationException;
 import me.stinper.jwtauth.repository.UserRepository;
 import me.stinper.jwtauth.service.authentication.contract.JwtService;
 import me.stinper.jwtauth.service.entity.contract.UserPasswordService;
-import me.stinper.jwtauth.utils.SecurityUtils;
 import me.stinper.jwtauth.validation.PasswordChangeValidator;
 import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;

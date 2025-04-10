@@ -2,9 +2,8 @@ package me.stinper.jwtauth.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import me.stinper.jwtauth.core.security.JwtAuthUserDetails;
+import me.stinper.jwtauth.core.security.jwt.JwtAuthUserDetails;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serial;
 import java.time.Instant;

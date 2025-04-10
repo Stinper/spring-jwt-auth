@@ -12,17 +12,18 @@ import java.util.Map;
 
 public final class DefaultConstraintAnnotationErrorResponseProvidersRegistry implements ConstraintAnnotationErrorResponseProvidersRegistry {
     private final Map<Class<? extends Annotation>, ConstraintAnnotationErrorResponseProvider> providers = new HashMap<>(
-            Map.of(
-                    NotNull.class,          new DefaultErrorResponseProvider(ConstraintViolationType.NOT_NULL),
-                    NotBlank.class,         new DefaultErrorResponseProvider(ConstraintViolationType.NOT_BLANK),
-                    Size.class,             new SizeConstraintErrorResponseProvider(),
-                    Email.class,            new EmailConstraintErrorResponseProvider(),
-                    Min.class,              new MinConstraintErrorResponseProvider(),
-                    Max.class,              new MaxConstraintErrorResponseProvider(),
-                    Positive.class,         new DefaultErrorResponseProvider(ConstraintViolationType.POSITIVE),
-                    PositiveOrZero.class,   new DefaultErrorResponseProvider(ConstraintViolationType.POSITIVE_OR_ZERO),
-                    Negative.class,         new DefaultErrorResponseProvider(ConstraintViolationType.NEGATIVE),
-                    NegativeOrZero.class,   new DefaultErrorResponseProvider(ConstraintViolationType.NEGATIVE_OR_ZERO)
+            Map.ofEntries(
+                    Map.entry(NotNull.class,        new DefaultErrorResponseProvider(ConstraintViolationType.NOT_NULL)),
+                    Map.entry(NotBlank.class,       new DefaultErrorResponseProvider(ConstraintViolationType.NOT_BLANK)),
+                    Map.entry(Size.class,           new SizeConstraintErrorResponseProvider()),
+                    Map.entry(Email.class,          new EmailConstraintErrorResponseProvider()),
+                    Map.entry(Min.class,            new MinConstraintErrorResponseProvider()),
+                    Map.entry(Max.class,            new MaxConstraintErrorResponseProvider()),
+                    Map.entry(Positive.class,       new DefaultErrorResponseProvider(ConstraintViolationType.POSITIVE)),
+                    Map.entry(PositiveOrZero.class, new DefaultErrorResponseProvider(ConstraintViolationType.POSITIVE_OR_ZERO)),
+                    Map.entry(Negative.class,       new DefaultErrorResponseProvider(ConstraintViolationType.NEGATIVE)),
+                    Map.entry(NegativeOrZero.class, new DefaultErrorResponseProvider(ConstraintViolationType.NEGATIVE_OR_ZERO)),
+                    Map.entry(Pattern.class,        new PatternMismatchConstraintViolationProvider())
             )
     );
 

@@ -10,6 +10,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -18,12 +20,13 @@ import static org.mockito.Mockito.*;
 class RoleInitializationServiceUnitTest {
     @Mock private RoleRepository roleRepository;
     private final String adminRoleName = "ROLE_ADMIN";
+    private final String adminRolePrefix = "Администратор";
 
     private RoleInitializationService roleInitializationService;
 
     @BeforeEach
     void setUp() {
-        this.roleInitializationService = spy(new RoleInitializationService(roleRepository, adminRoleName));
+        this.roleInitializationService = spy(new RoleInitializationService(roleRepository, adminRoleName, adminRolePrefix));
     }
 
     @Test
@@ -42,7 +45,7 @@ class RoleInitializationServiceUnitTest {
     }
 
     @Test
-    void isAlreadyInitialized_whenInitializationModeIsOnTableEmpty_thenChecksIsRoleExist() {
+    void isAlreadyInitialized_whenInitializationModeIsOnReload_thenChecksIsRoleExist() {
         //GIVEN
         when(this.roleInitializationService.getInitializationMode()).thenReturn(InitializationService.InitializationMode.ON_RELOAD);
         when(roleRepository.existsByRoleNameIgnoreCase(this.adminRoleName)).thenReturn(false);
@@ -103,7 +106,7 @@ class RoleInitializationServiceUnitTest {
     @Test
     void initialize_whenIsAlreadyInitializedReturnsFalse_thenInitializeRole() {
         //GIVEN
-        final Role adminRole = new Role(1L, this.adminRoleName);
+        final Role adminRole = new Role(1L, this.adminRoleName, this.adminRolePrefix, Collections.emptyList());
 
         when(roleInitializationService.isAlreadyInitialized()).thenReturn(false);
         when(roleRepository.save(any())).thenReturn(adminRole);
