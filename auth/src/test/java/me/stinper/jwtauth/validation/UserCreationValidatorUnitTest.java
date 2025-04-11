@@ -28,13 +28,6 @@ class UserCreationValidatorUnitTest {
     @InjectMocks
     private UserCreationValidator userCreationValidator;
 
-    private TestData testData;
-
-    @BeforeEach
-    void setUp() {
-        this.testData = new TestData();
-    }
-
     @Test
     void validate_whenTargetObjectIsNotSupported_thenThrowsException() {
         //GIVEN
@@ -42,40 +35,56 @@ class UserCreationValidatorUnitTest {
 
         //WHEN & THEN
         assertThatExceptionOfType(ValidatorUnsupportedTypeException.class)
-                .isThrownBy(() -> userCreationValidator.validate(UNSUPPORTED_OBJECT, testData.SIMPLE_ERRORS));
+                .isThrownBy(() -> userCreationValidator.validate(UNSUPPORTED_OBJECT, mock(Errors.class)));
 
-        verifyNoInteractions(userRepository);
+        verifyNoInteractions(userRepository, messageSourceHelper);
     }
 
 
     @Test
     void validate_whenEmailIsUnique_thenDoesNotRejectValue() {
         //GIVEN
-        when(userRepository.existsByEmailIgnoreCase(testData.USER_CREATION_REQUEST.email())).thenReturn(false);
+        final UserCreationRequest userCreationRequest = new UserCreationRequest(
+                "user@gmail.com", "123"
+        );
+
+        final Errors userCreationErrors = new SimpleErrors(userCreationRequest);
+
+        when(userRepository.existsByEmailIgnoreCase(userCreationRequest.email())).thenReturn(false);
 
         //WHEN
-        userCreationValidator.validate(testData.USER_CREATION_REQUEST, testData.SIMPLE_ERRORS);
+        userCreationValidator.validate(userCreationRequest, userCreationErrors);
 
         //THEN
-        assertThat(testData.SIMPLE_ERRORS.getAllErrors()).isEmpty();
+        assertThat(userCreationErrors.getAllErrors()).isEmpty();
 
-        verify(userRepository, times(1)).existsByEmailIgnoreCase(testData.USER_CREATION_REQUEST.email());
+        verify(userRepository).existsByEmailIgnoreCase(userCreationRequest.email());
+        verifyNoInteractions(messageSourceHelper);
     }
 
 
     @Test
     void validate_whenEmailIsNotUnique_thenRejectValue() {
         //GIVEN
-        final String email = testData.USER_CREATION_REQUEST.email(), errorMessage = "ERROR_MESSAGE";
+        final UserCreationRequest userCreationRequest = new UserCreationRequest(
+                "user@gmail.com", "123"
+        );
+
+        final Errors userCreationErrors = new SimpleErrors(userCreationRequest);
+
+        final String email = userCreationRequest.email(), errorMessage = "ERROR_MESSAGE";
 
         when(userRepository.existsByEmailIgnoreCase(email)).thenReturn(true); //Email is NOT unique
-        when(messageSourceHelper.getLocalizedMessage(any(), any())).thenReturn(errorMessage);
+        when(messageSourceHelper.getLocalizedMessage(
+                "messages.user.validation.fields.email.not-unique",
+                email)
+        ).thenReturn(errorMessage);
 
         //WHEN
-        userCreationValidator.validate(testData.USER_CREATION_REQUEST, testData.SIMPLE_ERRORS);
+        userCreationValidator.validate(userCreationRequest, userCreationErrors);
 
         //THEN
-        assertThat(testData.SIMPLE_ERRORS.getFieldErrors())
+        assertThat(userCreationErrors.getFieldErrors())
                 .hasSize(1)
                 .satisfies(fieldErrors -> {
                     FieldError emailFieldError = fieldErrors.getFirst();
@@ -85,16 +94,7 @@ class UserCreationValidatorUnitTest {
                     assertThat(emailFieldError.getDefaultMessage()).isEqualTo(errorMessage);
                 });
 
-        verify(userRepository, times(1)).existsByEmailIgnoreCase(email);
+        verify(userRepository).existsByEmailIgnoreCase(email);
+        verify(messageSourceHelper).getLocalizedMessage("messages.user.validation.fields.email.not-unique", email);
     }
-
-
-    private static class TestData {
-        final UserCreationRequest USER_CREATION_REQUEST = new UserCreationRequest(
-                "user@gmail.com", "123"
-        );
-
-        final Errors SIMPLE_ERRORS = new SimpleErrors(USER_CREATION_REQUEST);
-    }
-
 }

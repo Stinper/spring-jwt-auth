@@ -15,7 +15,6 @@ import me.stinper.jwtauth.repository.PermissionRepository;
 import me.stinper.jwtauth.repository.RoleRepository;
 import me.stinper.jwtauth.service.entity.contract.PermissionService;
 import me.stinper.jwtauth.utils.LoggingUtils;
-import me.stinper.jwtauth.utils.MessageSourceHelper;
 import me.stinper.jwtauth.validation.PermissionCreationValidator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +35,6 @@ public class PermissionServiceImpl implements PermissionService {
     private final RoleRepository roleRepository;
     private final PermissionCreationValidator permissionCreationValidator;
     private final PermissionMapper permissionMapper;
-    private final MessageSourceHelper messageSourceHelper;
 
     @Override
     public Page<PermissionDto> findAll(@NonNull Pageable pageable) {
@@ -106,7 +104,7 @@ public class PermissionServiceImpl implements PermissionService {
 
         Permission permission = permissionRepository.findById(id)
                 .orElseThrow(
-                        () -> new ResourceNotFoundException(messageSourceHelper.getLocalizedMessage("messages.permission.not-found.id", id))
+                        () -> new ResourceNotFoundException("messages.permission.not-found.id", id)
                 );
 
         permission.setDescription(description);

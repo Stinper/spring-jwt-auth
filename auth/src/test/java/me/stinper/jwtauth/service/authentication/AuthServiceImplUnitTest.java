@@ -5,9 +5,7 @@ import me.stinper.jwtauth.dto.user.LoginRequest;
 import me.stinper.jwtauth.entity.User;
 import me.stinper.jwtauth.exception.ResourceNotFoundException;
 import me.stinper.jwtauth.repository.UserRepository;
-import me.stinper.jwtauth.service.authentication.AuthServiceImpl;
 import me.stinper.jwtauth.service.authentication.contract.JwtService;
-import me.stinper.jwtauth.utils.MessageSourceHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,7 +35,6 @@ class AuthServiceImplUnitTest {
     @Mock private UserRepository userRepository;
     @Mock private AuthenticationManager authenticationManager;
     @Mock private JwtService jwtService;
-    @Mock private MessageSourceHelper messageSourceHelper;
 
     @InjectMocks
     private AuthServiceImpl authService;
@@ -72,20 +69,17 @@ class AuthServiceImplUnitTest {
     @Test
     void login_whenUserDoesNotExists_thenThrowsException() {
         //GIVEN
-        final String errorMessage = "ERROR_MESSAGE";
-
         when(userRepository.findByEmailIgnoreCase(any())).thenReturn(Optional.empty());
-        when(messageSourceHelper.getLocalizedMessage(any(), any())).thenReturn(errorMessage);
 
         //WHEN & THEN
         assertThatExceptionOfType(ResourceNotFoundException.class)
                 .isThrownBy(() -> authService.login(testData.LOGIN_REQUEST))
-                .satisfies(ex ->
-                        assertThat(ex.getLocalizedMessage()).isEqualTo(errorMessage)
-                );
+                .satisfies(ex -> {
+                    assertThat(ex.getErrorMessageCode()).isEqualTo("messages.user.not-found.email");
+                    assertThat(ex.getArgs()).containsExactly(testData.LOGIN_REQUEST.email());
+                });
 
-        verify(userRepository, times(1)).findByEmailIgnoreCase(any());
-        verify(messageSourceHelper, times(1)).getLocalizedMessage(any(), any());
+        verify(userRepository).findByEmailIgnoreCase(testData.LOGIN_REQUEST.email());
         verify(jwtService, never()).generateTokensPair(any());
     }
 

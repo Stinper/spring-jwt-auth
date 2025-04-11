@@ -35,7 +35,6 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserCreationValidator userCreationValidator;
     private final PasswordEncoder passwordEncoder;
-    private final MessageSourceHelper messageSourceHelper;
     private final JwtService jwtService;
 
     @Override
@@ -106,9 +105,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findById(uuid)
                 .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                messageSourceHelper.getLocalizedMessage("messages.user.not-found.uuid", uuid)
-                        )
+                        () -> new ResourceNotFoundException("messages.user.not-found.uuid", uuid)
                 );
 
         log.atDebug().log("Пользователь с UUID '{}' найден", uuid);

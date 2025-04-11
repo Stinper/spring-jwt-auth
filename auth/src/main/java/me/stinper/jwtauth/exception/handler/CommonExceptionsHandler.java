@@ -32,7 +32,10 @@ public class CommonExceptionsHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(
-                        new Problem(ApiErrorCode.NOT_FOUND.getCode(), e.getLocalizedMessage())
+                        new Problem(
+                                ApiErrorCode.NOT_FOUND.getCode(),
+                                messageSourceHelper.getLocalizedMessage(e.getErrorMessageCode(), e.getArgs())
+                        )
                 );
     }
 

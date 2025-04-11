@@ -11,7 +11,6 @@ import me.stinper.jwtauth.exception.ResourceNotFoundException;
 import me.stinper.jwtauth.mapping.PermissionMapper;
 import me.stinper.jwtauth.repository.PermissionRepository;
 import me.stinper.jwtauth.repository.RoleRepository;
-import me.stinper.jwtauth.utils.MessageSourceHelper;
 import me.stinper.jwtauth.validation.PermissionCreationValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +41,6 @@ class PermissionServiceImplUnitTest {
     @Mock private RoleRepository roleRepository;
     @Mock private PermissionCreationValidator permissionCreationValidator;
     @Mock private PermissionMapper permissionMapper;
-    @Mock private MessageSourceHelper messageSourceHelper;
 
     @InjectMocks
     private PermissionServiceImpl permissionService;
@@ -202,18 +200,18 @@ class PermissionServiceImplUnitTest {
         //GIVEN
         final Long permissionId = 999L;
         final String newDescription = "Новое описание";
-        final String errorMessage = "Error Message";
 
         when(permissionRepository.findById(permissionId)).thenReturn(Optional.empty());
-        when(messageSourceHelper.getLocalizedMessage(any(), any())).thenReturn(errorMessage);
 
         //WHEN & THEN
         assertThatExceptionOfType(ResourceNotFoundException.class)
                 .isThrownBy(() -> permissionService.updateDescription(permissionId, newDescription))
-                .satisfies(ex -> assertThat(ex.getLocalizedMessage()).isEqualTo(errorMessage));
+                .satisfies(ex -> {
+                    assertThat(ex.getErrorMessageCode()).isEqualTo("messages.permission.not-found.id");
+                    assertThat(ex.getArgs()).containsExactly(permissionId);
+                });
 
         verify(permissionRepository).findById(permissionId);
-        verify(messageSourceHelper).getLocalizedMessage(any(), any());
 
         verifyNoMoreInteractions(permissionRepository);
         verifyNoInteractions(permissionMapper);

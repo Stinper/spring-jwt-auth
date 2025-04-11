@@ -50,7 +50,7 @@ public class PasswordChangeValidatorUnitTest {
         assertThatExceptionOfType(ValidatorUnsupportedTypeException.class)
                 .isThrownBy(() -> passwordChangeValidator.validate(UNSUPPORTED_OBJECT, testData.SIMPLE_ERRORS));
 
-        verifyNoInteractions(passwordEncoder);
+        verifyNoInteractions(passwordEncoder, messageSourceHelper);
     }
 
 
@@ -69,7 +69,9 @@ public class PasswordChangeValidatorUnitTest {
 
             //THEN
             assertThat(testData.SIMPLE_ERRORS.getAllErrors()).isEmpty();
-            verify(passwordEncoder, times(1)).matches(oldPassword, currentUser.getPassword());
+            verify(passwordEncoder).matches(oldPassword, currentUser.getPassword());
+
+            verifyNoInteractions(messageSourceHelper);
         });
     }
 
@@ -81,8 +83,8 @@ public class PasswordChangeValidatorUnitTest {
             //GIVEN
             final String errorMessage = "ERROR_MESSAGE";
 
-            when(passwordEncoder.matches(any(), any())).thenReturn(false);
-            when(messageSourceHelper.getLocalizedMessage(any())).thenReturn(errorMessage);
+            when(passwordEncoder.matches(eq(testData.PASSWORD_CHANGE_REQUEST.oldPassword()), any())).thenReturn(false);
+            when(messageSourceHelper.getLocalizedMessage("messages.user.password-change.wrong-old-password")).thenReturn(errorMessage);
 
             //WHEN
             passwordChangeValidator.validate(testData.PASSWORD_CHANGE_REQUEST, testData.SIMPLE_ERRORS);
@@ -99,7 +101,8 @@ public class PasswordChangeValidatorUnitTest {
                     });
 
 
-            verify(passwordEncoder, times(1)).matches(any(), any());
+            verify(passwordEncoder).matches(eq(testData.PASSWORD_CHANGE_REQUEST.oldPassword()), any());
+            verify(messageSourceHelper).getLocalizedMessage("messages.user.password-change.wrong-old-password");
         });
     }
 
@@ -118,7 +121,8 @@ public class PasswordChangeValidatorUnitTest {
             final String errorMessage = "ERROR_MESSAGE";
 
             when(passwordEncoder.matches(any(), any())).thenReturn(true);
-            when(messageSourceHelper.getLocalizedMessage(any())).thenReturn(errorMessage);
+            when(messageSourceHelper.getLocalizedMessage("messages.user.password-change.identical-old-and-new-passwords"))
+                    .thenReturn(errorMessage);
 
             //WHEN
             passwordChangeValidator.validate(invalidPasswordChangeRequest, errors);
@@ -135,7 +139,8 @@ public class PasswordChangeValidatorUnitTest {
                     });
 
 
-            verify(passwordEncoder, times(1)).matches(any(), any());
+            verify(passwordEncoder).matches(any(), any());
+            verify(messageSourceHelper).getLocalizedMessage("messages.user.password-change.identical-old-and-new-passwords");
         });
     }
 
@@ -154,7 +159,8 @@ public class PasswordChangeValidatorUnitTest {
             final String errorMessage = "ERROR_MESSAGE";
 
             when(passwordEncoder.matches(any(), any())).thenReturn(true);
-            when(messageSourceHelper.getLocalizedMessage(any())).thenReturn(errorMessage);
+            when(messageSourceHelper.getLocalizedMessage("messages.user.password-change.old-and-new-passwords-do-not-match"))
+                    .thenReturn(errorMessage);
 
             //WHEN
             passwordChangeValidator.validate(invalidPasswordChangeRequest, errors);
@@ -171,7 +177,8 @@ public class PasswordChangeValidatorUnitTest {
                     });
 
 
-            verify(passwordEncoder, times(1)).matches(any(), any());
+            verify(passwordEncoder).matches(any(), any());
+            verify(messageSourceHelper).getLocalizedMessage("messages.user.password-change.old-and-new-passwords-do-not-match");
         });
     }
 

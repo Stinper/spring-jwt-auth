@@ -18,7 +18,6 @@ import me.stinper.jwtauth.repository.RoleRepository;
 import me.stinper.jwtauth.repository.UserRepository;
 import me.stinper.jwtauth.service.entity.contract.RoleService;
 import me.stinper.jwtauth.utils.LoggingUtils;
-import me.stinper.jwtauth.utils.MessageSourceHelper;
 import me.stinper.jwtauth.validation.RoleCreationValidator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,7 +43,6 @@ public class RoleServiceImpl implements RoleService {
     private final PermissionRepository permissionRepository;
     private final RoleMapper roleMapper;
     private final RoleCreationValidator roleCreationValidator;
-    private final MessageSourceHelper messageSourceHelper;
 
     @Override
     public Page<RoleDto> findAll(Pageable pageable) {
@@ -113,8 +111,7 @@ public class RoleServiceImpl implements RoleService {
                 .orElseThrow(() -> {
                     log.atDebug().log("[#updatePermissions]: Роль с именем '{}' не существует", roleName);
 
-                    return new ResourceNotFoundException(
-                            messageSourceHelper.getLocalizedMessage("messages.role.not-found.role-name", roleName));
+                    return new ResourceNotFoundException("messages.role.not-found.role-name", roleName);
                 });
 
         Errors permissionListValidationErrors = new SimpleErrors(permissionUpdateRequest);

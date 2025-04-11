@@ -30,6 +30,8 @@ class PasswordValidatorUnitTest {
 
         //THEN
         assertThat(isPasswordValid).isTrue();
+
+        verifyNoInteractions(messageSourceHelper, passwordPolicyProperties);
     }
 
 
@@ -47,57 +49,78 @@ class PasswordValidatorUnitTest {
 
         //THEN
         assertThat(isPasswordValid).isTrue();
+
         verify(passwordPolicyProperties, atLeastOnce()).getMinLength();
         verify(passwordPolicyProperties, atLeastOnce()).getMinLettersCount();
         verify(passwordPolicyProperties, atLeastOnce()).getMinUpperLettersCount();
+
+        verifyNoInteractions(messageSourceHelper);
     }
 
 
     @Test
     void isValid_whenPasswordLengthLessThanMinLength_thenReturnsFalse() {
         //GIVEN
-        final String password = "123";
+        final String password = "123", errorMessage = "ERROR_MESSAGE";
+        final int passwordMinLength = password.length() + 1;
+
+        when(messageSourceHelper.getLocalizedMessage(
+                "messages.user.validation.fields.password.min-length",
+                passwordMinLength)
+        ).thenReturn(errorMessage);
 
         //WHEN
         boolean isPasswordValid = this.testPasswordMatchesPolicyProperties(
-                password, password.length() + 1, 0, 0);
+                password, passwordMinLength, 0, 0);
 
         //THEN
         assertThat(isPasswordValid).isFalse();
         verify(passwordPolicyProperties, atLeastOnce()).getMinLength();
-        verify(messageSourceHelper).getLocalizedMessage(any(), any());
+        verify(messageSourceHelper).getLocalizedMessage("messages.user.validation.fields.password.min-length", passwordMinLength);
     }
 
 
     @Test
     void isValid_whenPasswordLettersCountLessThanMinLettersCount_thenReturnsFalse() {
         //GIVEN
-        final String password = "abc";
+        final String password = "abc", errorMessage = "ERROR_MESSAGE";
+        final int minLength = password.length() + 1;
+
+        when(messageSourceHelper.getLocalizedMessage(
+                "messages.user.validation.fields.password.min-letters-count",
+                minLength)
+        ).thenReturn(errorMessage);
 
         //WHEN
         boolean isPasswordValid = this.testPasswordMatchesPolicyProperties(
-                password, 0, password.length() + 1, 0);
+                password, 0, minLength, 0);
 
         //THEN
         assertThat(isPasswordValid).isFalse();
         verify(passwordPolicyProperties, atLeastOnce()).getMinLettersCount();
-        verify(messageSourceHelper).getLocalizedMessage(any(), any());
+        verify(messageSourceHelper).getLocalizedMessage("messages.user.validation.fields.password.min-letters-count", minLength);
     }
 
 
     @Test
     void isValid_whenPasswordUpperLettersCountLessThenMinUpperLettersCount_thenReturnsFalse() {
         //GIVEN
-        final String password = "ABC";
+        final String password = "ABC", errorMessage = "ERROR_MESSAGE";
+        final int minLength = password.length() + 1;
+
+        when(messageSourceHelper.getLocalizedMessage(
+                "messages.user.validation.fields.password.min-upper-letters-count",
+                minLength)
+        ).thenReturn(errorMessage);
 
         //WHEN
         boolean isPasswordValid = this.testPasswordMatchesPolicyProperties(
-                password, 0, 0, password.length() + 1);
+                password, 0, 0, minLength);
 
         //THEN
         assertThat(isPasswordValid).isFalse();
         verify(passwordPolicyProperties, atLeastOnce()).getMinUpperLettersCount();
-        verify(messageSourceHelper).getLocalizedMessage(any(), any());
+        verify(messageSourceHelper).getLocalizedMessage("messages.user.validation.fields.password.min-upper-letters-count", minLength);
     }
 
 
@@ -109,8 +132,6 @@ class PasswordValidatorUnitTest {
         when(passwordPolicyProperties.getMinLength()).thenReturn(minLength);
         when(passwordPolicyProperties.getMinLettersCount()).thenReturn(minLettersCount);
         when(passwordPolicyProperties.getMinUpperLettersCount()).thenReturn(minUpperLettersCount);
-
-        when(messageSourceHelper.getLocalizedMessage(any(), any())).thenReturn("ERROR_MESSAGE");
 
         ConstraintValidatorContext contextMock = mock(ConstraintValidatorContext.class);
         ConstraintViolationBuilder violationBuilderMock = mock(ConstraintViolationBuilder.class);

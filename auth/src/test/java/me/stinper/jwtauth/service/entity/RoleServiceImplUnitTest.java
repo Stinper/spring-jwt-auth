@@ -15,7 +15,6 @@ import me.stinper.jwtauth.mapping.RoleMapper;
 import me.stinper.jwtauth.repository.PermissionRepository;
 import me.stinper.jwtauth.repository.RoleRepository;
 import me.stinper.jwtauth.repository.UserRepository;
-import me.stinper.jwtauth.utils.MessageSourceHelper;
 import me.stinper.jwtauth.validation.RoleCreationValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,7 +45,6 @@ class RoleServiceImplUnitTest {
     @Mock private PermissionRepository permissionRepository;
     @Mock private RoleMapper roleMapper;
     @Mock private RoleCreationValidator roleCreationValidator;
-    @Mock private MessageSourceHelper messageSourceHelper;
 
     @InjectMocks
     private RoleServiceImpl roleService;
@@ -193,17 +191,18 @@ class RoleServiceImplUnitTest {
     @Test
     void updatePermissions_whenRoleNotFound_thenThrowsException() {
         //GIVEN
-        final String roleName = "ROLE_USER", errorMessage = "Error Message";
+        final String roleName = "ROLE_USER";
         when(roleRepository.findByRoleNameIgnoreCase(roleName)).thenReturn(Optional.empty());
-        when(messageSourceHelper.getLocalizedMessage(any(), any())).thenReturn(errorMessage);
 
         //WHEN & THEN
         assertThatExceptionOfType(ResourceNotFoundException.class)
                 .isThrownBy(() -> roleService.updatePermissions(roleName, mock(RolePermissionUpdateRequest.class)))
-                .satisfies(ex -> assertThat(ex.getLocalizedMessage()).isEqualTo(errorMessage));
+                .satisfies(ex -> {
+                    assertThat(ex.getErrorMessageCode()).isEqualTo("messages.role.not-found.role-name");
+                    assertThat(ex.getArgs()).containsExactly(roleName);
+                });
 
         verify(roleRepository).findByRoleNameIgnoreCase(roleName);
-        verify(messageSourceHelper).getLocalizedMessage(any(), any());
 
         verifyNoMoreInteractions(roleRepository);
         verifyNoInteractions(permissionRepository, roleCreationValidator, roleMapper);
@@ -244,7 +243,6 @@ class RoleServiceImplUnitTest {
         verify(roleCreationValidator).validateInputPermissions(eq(request.permissions()), any());
 
         verifyNoMoreInteractions(roleRepository);
-        verifyNoInteractions(messageSourceHelper, roleMapper);
     }
 
 
@@ -291,8 +289,6 @@ class RoleServiceImplUnitTest {
         verify(roleCreationValidator).validateInputPermissions(eq(request.permissions()), any(Errors.class));
         verify(permissionRepository).findAllByPermissionIn(request.permissions());
         verify(roleRepository).save(existingRole);
-
-        verifyNoInteractions(messageSourceHelper);
     }
 
 

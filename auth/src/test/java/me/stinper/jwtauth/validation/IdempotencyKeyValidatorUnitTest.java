@@ -4,7 +4,6 @@ import me.stinper.jwtauth.core.error.IdempotencyKeyErrorCode;
 import me.stinper.jwtauth.exception.ValidatorUnsupportedTypeException;
 import me.stinper.jwtauth.repository.IdempotencyKeyRepository;
 import me.stinper.jwtauth.utils.MessageSourceHelper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,13 +30,6 @@ class IdempotencyKeyValidatorUnitTest {
     @InjectMocks
     private IdempotencyKeyValidator idempotencyKeyValidator;
 
-    private TestData testData;
-
-    @BeforeEach
-    void setUp() {
-        this.testData = new TestData();
-    }
-
     @Test
     void validate_whenTargetObjectIsNotSupported_thenThrowsException() {
         //GIVEN
@@ -45,38 +37,47 @@ class IdempotencyKeyValidatorUnitTest {
 
         //WHEN & THEN
         assertThatExceptionOfType(ValidatorUnsupportedTypeException.class)
-                .isThrownBy(() -> idempotencyKeyValidator.validate(UNSUPPORTED_OBJECT, testData.SIMPLE_ERRORS));
+                .isThrownBy(() -> idempotencyKeyValidator.validate(UNSUPPORTED_OBJECT, mock(Errors.class)));
 
-        verifyNoInteractions(idempotencyKeyRepository);
+        verifyNoInteractions(idempotencyKeyRepository, messageSourceHelper);
     }
 
 
     @Test
     void validate_whenIdempotencyKeyIsUnique_thenDoesNotRejectValue() {
         //GIVEN
-        when(idempotencyKeyRepository.existsByKey(testData.IDEMPOTENCY_KEY)).thenReturn(false);
+        final UUID idempotencyKey = UUID.fromString("0195853e-396f-7369-bebe-3b2b0ca34c8e");
+        final Errors idempotencyKeyValidationErrors = new SimpleErrors(idempotencyKey);
+
+        when(idempotencyKeyRepository.existsByKey(idempotencyKey)).thenReturn(false);
 
         //WHEN
-        idempotencyKeyValidator.validate(testData.IDEMPOTENCY_KEY, testData.SIMPLE_ERRORS);
+        idempotencyKeyValidator.validate(idempotencyKey, idempotencyKeyValidationErrors);
 
         //THEN
-        assertThat(testData.SIMPLE_ERRORS.getAllErrors()).isEmpty();
-        verify(idempotencyKeyRepository, times(1)).existsByKey(testData.IDEMPOTENCY_KEY);
+        assertThat(idempotencyKeyValidationErrors.getAllErrors()).isEmpty();
+        verify(idempotencyKeyRepository).existsByKey(idempotencyKey);
     }
 
 
     @Test
     void validate_whenIdempotencyKeyIsNotUnique_thenRejectsValue() {
         //GIVEN
+        final UUID idempotencyKey = UUID.fromString("0195853e-396f-7369-bebe-3b2b0ca34c8e");
+        final Errors idempotencyKeyValidationErrors = new SimpleErrors(idempotencyKey);
         final String errorMessage = "ERROR_MESSAGE";
-        when(idempotencyKeyRepository.existsByKey(testData.IDEMPOTENCY_KEY)).thenReturn(true);
-        when(messageSourceHelper.getLocalizedMessage(any(), any())).thenReturn(errorMessage);
+
+        when(idempotencyKeyRepository.existsByKey(idempotencyKey)).thenReturn(true);
+        when(messageSourceHelper.getLocalizedMessage(
+                "messages.idempotency-key.fields.key.not-unique",
+                idempotencyKey)
+        ).thenReturn(errorMessage);
 
         //WHEN
-        idempotencyKeyValidator.validate(testData.IDEMPOTENCY_KEY, testData.SIMPLE_ERRORS);
+        idempotencyKeyValidator.validate(idempotencyKey, idempotencyKeyValidationErrors);
 
         //THEN
-        assertThat(testData.SIMPLE_ERRORS.getAllErrors())
+        assertThat(idempotencyKeyValidationErrors.getAllErrors())
                 .hasSize(1)
                 .satisfies(errors -> {
                     ObjectError idempotencyKeyError = errors.getFirst();
@@ -85,13 +86,7 @@ class IdempotencyKeyValidatorUnitTest {
                     assertThat(idempotencyKeyError.getDefaultMessage()).isEqualTo(errorMessage);
                 });
 
-        verify(idempotencyKeyRepository, times(1)).existsByKey(testData.IDEMPOTENCY_KEY);
-    }
-
-
-    private static class TestData {
-        final UUID IDEMPOTENCY_KEY = UUID.fromString("0195853e-396f-7369-bebe-3b2b0ca34c8e");
-
-        final Errors SIMPLE_ERRORS = new SimpleErrors(IDEMPOTENCY_KEY);
+        verify(idempotencyKeyRepository, times(1)).existsByKey(idempotencyKey);
+        verify(messageSourceHelper).getLocalizedMessage("messages.idempotency-key.fields.key.not-unique", idempotencyKey);
     }
 }

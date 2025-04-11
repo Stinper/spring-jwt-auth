@@ -68,7 +68,10 @@ class PermissionCreationValidatorUnitTest {
         final String errorMessage = "Error Message";
 
         when(permissionRepository.existsByPermissionIgnoreCase(permissionCreationRequest.permission())).thenReturn(true);
-        when(messageSourceHelper.getLocalizedMessage(any(), any())).thenReturn(errorMessage);
+        when(messageSourceHelper.getLocalizedMessage(
+                "messages.permission.validation.fields.permission.not-unique",
+                permissionCreationRequest.permission())
+        ).thenReturn(errorMessage);
 
         //WHEN
         permissionCreationValidator.validate(permissionCreationRequest, errors);
@@ -84,6 +87,8 @@ class PermissionCreationValidatorUnitTest {
                 });
 
         verify(permissionRepository).existsByPermissionIgnoreCase(permissionCreationRequest.permission());
-        verify(messageSourceHelper).getLocalizedMessage(any(), any());
+        verify(messageSourceHelper).getLocalizedMessage(
+                "messages.permission.validation.fields.permission.not-unique", permissionCreationRequest.permission()
+        );
     }
 }

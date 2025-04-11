@@ -10,7 +10,6 @@ import me.stinper.jwtauth.exception.ResourceNotFoundException;
 import me.stinper.jwtauth.repository.UserRepository;
 import me.stinper.jwtauth.service.authentication.contract.AuthService;
 import me.stinper.jwtauth.service.authentication.contract.JwtService;
-import me.stinper.jwtauth.utils.MessageSourceHelper;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.AuthenticationException;
@@ -23,7 +22,6 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final MessageSourceHelper messageSourceHelper;
 
     @Override
     public JwtResponse login(@NonNull LoginRequest loginRequest) throws AuthenticationException {
@@ -41,9 +39,7 @@ public class AuthServiceImpl implements AuthService {
             User user = userRepository
                     .findByEmailIgnoreCase(loginRequest.email())
                     .orElseThrow(
-                            () -> new ResourceNotFoundException(
-                                    messageSourceHelper.getLocalizedMessage("messages.user.not-found.email", loginRequest.email())
-                            )
+                            () -> new ResourceNotFoundException("messages.user.not-found.email", loginRequest.email())
                     );
 
             log.atDebug().log("[#login]: Аутентификация пользователя с эл. почтой '{}' прошла успешно", loginRequest.email());

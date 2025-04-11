@@ -70,6 +70,7 @@ class RoleCreationValidatorUnitTest {
 
         verify(roleRepository).existsByRoleNameIgnoreCase(roleCreationRequest.roleName());
         verify(roleCreationValidator, never()).validateInputPermissions(any(), any());
+        verifyNoInteractions(messageSourceHelper);
     }
 
 
@@ -85,7 +86,10 @@ class RoleCreationValidatorUnitTest {
         final String errorMessage = "ERROR_MESSAGE";
 
         when(roleRepository.existsByRoleNameIgnoreCase(roleCreationRequest.roleName())).thenReturn(true);
-        when(messageSourceHelper.getLocalizedMessage(any(), any())).thenReturn(errorMessage);
+        when(messageSourceHelper.getLocalizedMessage(
+                "messages.role.validation.fields.role-name.not-unique",
+                roleCreationRequest.roleName())
+        ).thenReturn(errorMessage);
 
         //WHEN
         roleCreationValidator.validate(roleCreationRequest, errors);
@@ -100,7 +104,7 @@ class RoleCreationValidatorUnitTest {
                     assertThat(fieldError.getDefaultMessage()).isEqualTo(errorMessage);
                 });
 
-        verify(messageSourceHelper).getLocalizedMessage(any(), any());
+        verify(messageSourceHelper).getLocalizedMessage("messages.role.validation.fields.role-name.not-unique", roleCreationRequest.roleName());
         verify(roleRepository).existsByRoleNameIgnoreCase(roleCreationRequest.roleName());
         verify(roleCreationValidator, never()).validateInputPermissions(any(), any());
     }
@@ -126,6 +130,7 @@ class RoleCreationValidatorUnitTest {
 
         verify(roleRepository).existsByRoleNameIgnoreCase(roleCreationRequest.roleName());
         verify(roleCreationValidator).validateInputPermissions(roleCreationRequest.permissions(), errors);
+        verifyNoInteractions(messageSourceHelper);
     }
 
 
@@ -144,7 +149,11 @@ class RoleCreationValidatorUnitTest {
 
         final String errorMessage = "ERROR_MESSAGE";
 
-        when(messageSourceHelper.getLocalizedMessage(any(), any())).thenReturn(errorMessage);
+        when(messageSourceHelper.getLocalizedMessage(
+                eq("messages.permission.not-found.permission"),
+                anyString())
+        ).thenReturn(errorMessage);
+
         when(permissionRepository.findAllByPermissionIn(permissions)).thenReturn(existingPermissions);
 
         //WHEN
@@ -160,7 +169,7 @@ class RoleCreationValidatorUnitTest {
                     assertThat(fieldError.getDefaultMessage()).isEqualTo(errorMessage);
                 });
 
-        verify(messageSourceHelper).getLocalizedMessage(any(), any());
+        verify(messageSourceHelper).getLocalizedMessage(eq("messages.permission.not-found.permission"), anyString());
         verify(roleCreationValidator).validateInputPermissions(permissions, errors);
         verify(permissionRepository).findAllByPermissionIn(permissions);
 
