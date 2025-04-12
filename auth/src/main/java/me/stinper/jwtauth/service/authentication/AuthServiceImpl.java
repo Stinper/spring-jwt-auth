@@ -38,31 +38,39 @@ public class AuthServiceImpl implements AuthService {
 
             User user = userRepository
                     .findByEmailIgnoreCase(loginRequest.email())
-                    .orElseThrow(
-                            () -> new ResourceNotFoundException("messages.user.not-found.email", loginRequest.email())
-                    );
+                    .orElseThrow(() -> {
+                        log.atDebug().log("[#login]: Пользователь с эл. почтой '{}' не найден", loginRequest.email());
+
+                        return new ResourceNotFoundException("messages.user.not-found.email", loginRequest.email());
+                    });
 
             log.atDebug().log("[#login]: Аутентификация пользователя с эл. почтой '{}' прошла успешно", loginRequest.email());
 
             return jwtService.generateTokensPair(user);
         }
         catch (BadCredentialsException bce) {
-            log.atDebug().log("[#login]: Аутентификация пользователя с эл. почтой '{}' не удалась. Неверные учетные данные", loginRequest.email());
+            log.atDebug().log("[#login]: Аутентификация пользователя не удалась \n\tЭл. почта: {} \n\tПричина: Неверные учетные данные",
+                    loginRequest.email()
+            );
             throw new BadCredentialsException(bce.getMessage(), bce);
         }
         catch (LockedException le) {
-            log.atDebug().log("[#login]: Аутентификация пользователя с эл. почтой '{}' не удалась. Аккаунт был заблокирован", loginRequest.email());
+            log.atDebug().log("[#login]: Аутентификация пользователя не удалась \n\tЭл. почта: {} \n\tПричина: Аккаунт заблокирован",
+                    loginRequest.email()
+            );
             throw new LockedException(le.getMessage(), le);
         }
         catch (DisabledException de) {
-            log.atDebug().log("[#login]: Аутентификация пользователя с эл. почтой '{}' не удалась. Аккаунт был деактивирован", loginRequest.email());
+            log.atDebug().log("[#login]: Аутентификация пользователя не удалась \n\tЭл. почта: {} \n\tПричина: Аккаунт деактивирован",
+                    loginRequest.email()
+            );
             throw new DisabledException(de.getMessage(), de);
         }
     }
 
     @Override
     public void logout(@NonNull JwtAuthUserDetails userDetails) {
-        log.atDebug().log("[#logout]: Начало выполнения метода. Пользователь: {}", userDetails.getUsername());
+        log.atDebug().log("[#logout]: Начало выполнения метода. UUID: '{}'", userDetails.getUuid());
 
         jwtService.invalidateRefreshTokens(userDetails);
     }

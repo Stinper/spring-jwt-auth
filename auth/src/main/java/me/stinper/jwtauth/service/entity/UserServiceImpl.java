@@ -12,7 +12,7 @@ import me.stinper.jwtauth.mapping.UserMapper;
 import me.stinper.jwtauth.repository.UserRepository;
 import me.stinper.jwtauth.service.authentication.contract.JwtService;
 import me.stinper.jwtauth.service.entity.contract.UserService;
-import me.stinper.jwtauth.utils.MessageSourceHelper;
+import me.stinper.jwtauth.utils.LoggingUtils;
 import me.stinper.jwtauth.validation.UserCreationValidator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<UserDto> findByUUID(@NonNull UUID uuid) {
-        log.atDebug().log("[#findByUUID]: Начало выполнения метода. UUID: {}", uuid);
+        log.atDebug().log("[#findByUUID]: Начало выполнения метода. UUID: '{}'", uuid);
 
         Optional<UserDto> user = userRepository.findById(uuid)
                 .map(userMapper::toUserDto);
@@ -76,15 +76,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto create(@NonNull UserCreationRequest userCreationRequest) {
-        log.atDebug().log(() -> "[#create]: Начало выполнения метода. Информация о запросе: " + userCreationRequest);
+        log.atDebug().log(() -> "[#create]: Начало выполнения метода. Информация о запросе: \n\tЭл. почта: '" + userCreationRequest.email() + "'");
         Errors validationErrors = userCreationValidator.validateObject(userCreationRequest);
 
         if (validationErrors.hasFieldErrors()) {
-            log.atWarn().log(() -> "[#create]: Ошибка валидации запроса на создание пользователя: " + validationErrors.getFieldErrors());
+            log.atWarn().log(() -> "[#create]: Ошибка валидации запроса на создание пользователя \n\tСписок ошибок: \n"
+                    + LoggingUtils.logFieldErrorsListLineSeparated(validationErrors.getFieldErrors())
+            );
+
             throw new EntityValidationException(validationErrors.getFieldErrors());
         }
 
-        log.atDebug().log("[#create]: Валидация запроса на создания пользователя успешно пройдена");
+        log.atDebug().log("[#create]: Валидация запроса на создание пользователя успешно пройдена");
 
         User user = userMapper.toUser(userCreationRequest);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -93,7 +96,7 @@ public class UserServiceImpl implements UserService {
 
         user = userRepository.save(user);
 
-        log.atInfo().log("[#create]: Пользователь успешно создан. Информация о запросе: {}", userCreationRequest);
+        log.atInfo().log("[#create]: Пользователь с эл. почтой '{}' успешно зарегистрирован", userCreationRequest.email());
 
         return userMapper.toUserDto(user);
     }
@@ -104,11 +107,11 @@ public class UserServiceImpl implements UserService {
         log.atDebug().log("[#deleteByUUID]: Начало выполнения метода. UUID: '{}'", uuid);
 
         User user = userRepository.findById(uuid)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("messages.user.not-found.uuid", uuid)
-                );
+                .orElseThrow(() -> {
+                    log.atDebug().log("[#deleteByUUID]: Пользователь с UUID '{}' не найден", uuid);
 
-        log.atDebug().log("Пользователь с UUID '{}' найден", uuid);
+                    return new ResourceNotFoundException("messages.user.not-found.uuid", uuid);
+                });
 
         if (user.getDeactivatedAt() != null) {
             log.atDebug().log("[#deleteByUUID]: Учетная запись с UUID '{}' уже деактивирована. Действий не требуется", uuid);

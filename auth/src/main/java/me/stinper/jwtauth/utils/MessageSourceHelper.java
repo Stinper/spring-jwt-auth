@@ -33,7 +33,9 @@ public class MessageSourceHelper {
             return messageSource.getMessage(code, args, LocaleContextHolder.getLocale());
         }
         catch (NoSuchMessageException e) {
-            log.atError().log("Сообщение с кодом '{}' не найдено, заданная стратегия действий - {}", code, this.messageNotFoundAction.toString());
+            log.atError().log("[#getLocalizedMessage]: Сообщение с кодом '{}' не найдено, заданная стратегия действий: '{}'",
+                    code, this.messageNotFoundAction.toString()
+            );
 
             if (this.messageNotFoundAction == MessageNotFoundAction.THROW_EXCEPTION)
                 throw new NoSuchMessageException(code, LocaleContextHolder.getLocale());

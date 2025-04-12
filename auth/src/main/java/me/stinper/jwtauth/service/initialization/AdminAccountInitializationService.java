@@ -1,6 +1,8 @@
 package me.stinper.jwtauth.service.initialization;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.stinper.jwtauth.entity.Role;
 import me.stinper.jwtauth.entity.User;
@@ -18,36 +20,30 @@ import java.util.Optional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AdminAccountInitializationService implements InitializationService<User> {
     private final InitializationService<Role> roleInitializationService;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
-    private final String adminAccountEmail;
-    private final String adminAccountPassword;
-    private final String adminRoleName;
 
-    public AdminAccountInitializationService(InitializationService<Role> roleInitializationService,
-                                             UserRepository userRepository,
-                                             RoleRepository roleRepository,
-                                             PasswordEncoder passwordEncoder,
-                                             @Value("${app.auth.security.admin-email}") String adminAccountEmail,
-                                             @Value("${app.auth.security.admin-password}") String adminAccountPassword,
-                                             @Value("${app.auth.security.admin-role-name}") String adminRoleName) {
-        this.roleInitializationService = roleInitializationService;
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.adminAccountEmail = adminAccountEmail;
-        this.adminAccountPassword = adminAccountPassword;
-        this.adminRoleName = adminRoleName;
-    }
+    @Value("${app.auth.security.admin-email}")
+    @Setter(AccessLevel.PACKAGE)
+    private String adminAccountEmail;
+
+    @Value("${app.auth.security.admin-password}")
+    @Setter(AccessLevel.PACKAGE)
+    private String adminAccountPassword;
+
+    @Value("${app.auth.security.admin-role-name}")
+    @Setter(AccessLevel.PACKAGE)
+    private String adminRoleName;
 
     @Override
     @Transactional
     public User initialize() {
         if (this.isAlreadyInitialized()) {
-            log.atInfo().log("Инициализация учетной записи администратора не требуется");
+            log.atInfo().log("[#initialize]: Инициализация учетной записи администратора не требуется");
             return null;
         }
 
@@ -70,7 +66,7 @@ public class AdminAccountInitializationService implements InitializationService<
 
         adminAccount = userRepository.save(adminAccount);
 
-        log.atInfo().log("Инициализация учетной записи администратора прошла успешно. UUID: {}, Email: {}",
+        log.atInfo().log("[#initialize]: Инициализация учетной записи администратора прошла успешно \n\tUUID: '{}' \n\tEmail: '{}'",
                 adminAccount.getUuid(),
                 adminAccount.getEmail()
         );
@@ -80,7 +76,9 @@ public class AdminAccountInitializationService implements InitializationService<
 
     @Override
     public boolean isAlreadyInitialized() {
-        log.atInfo().log("Стратегия инициализации учетной записи администратора - {}", this.getInitializationMode().toString());
+        log.atInfo().log("[#isAlreadyInitialized]: Стратегия инициализации учетной записи администратора: '{}'",
+                this.getInitializationMode().toString()
+        );
 
         if (this.getInitializationMode() == InitializationMode.ON_TABLE_EMPTY)
             return !userRepository.isTableEmpty();

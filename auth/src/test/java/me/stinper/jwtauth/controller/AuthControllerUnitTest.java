@@ -1,5 +1,6 @@
 package me.stinper.jwtauth.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.ConstraintViolationException;
 import me.stinper.jwtauth.dto.JwtResponse;
 import me.stinper.jwtauth.dto.user.LoginRequest;
@@ -25,6 +26,7 @@ import org.springframework.security.authentication.LockedException;
 
 import java.util.Collections;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
@@ -61,14 +63,13 @@ class AuthControllerUnitTest {
 
     @ParameterizedTest
     @MethodSource("exceptionsSource")
-    void login_whenLoginFails_thenThrowsException(Class<? extends Throwable> exceptionClass) {
+    void login_whenLoginFails_thenThrowsException(Class<? extends Throwable> exceptionClass) throws JsonProcessingException {
         //GIVEN
         final LoginRequest loginRequest = new LoginRequest(
                 "user@gmail.com", "123"
         );
 
-        doThrow(exceptionClass).when(authService).login(any());
-        when(idempotencyService.wrap(any(), any(), any())).thenCallRealMethod();
+        when(idempotencyService.process(any(), any(), any())).thenThrow(exceptionClass);
 
         //WHEN & THEN
         assertThatThrownBy(() -> authController.login(UUID.randomUUID(), loginRequest))
@@ -86,7 +87,7 @@ class AuthControllerUnitTest {
 
 
     @Test
-    void login_whenLoginRequestIsValid_thenReturnsJwtTokensPair() {
+    void login_whenLoginRequestIsValid_thenReturnsJwtTokensPair() throws JsonProcessingException {
         //GIVEN
         final LoginRequest loginRequest = new LoginRequest(
                 "user@gmail.com", "123"
@@ -98,7 +99,11 @@ class AuthControllerUnitTest {
 
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         when(authService.login(loginRequest)).thenReturn(jwtResponse);
-        when(idempotencyService.wrap(any(), any(), any())).thenCallRealMethod();
+
+        when(idempotencyService.process(any(), any(), any())).thenAnswer(ans -> {
+            Supplier<?> supplier = ans.getArgument(1);
+            return supplier.get();
+        });
 
         //WHEN
         ResponseEntity<JwtResponse> response = authController.login(UUID.randomUUID(), loginRequest);
@@ -107,7 +112,7 @@ class AuthControllerUnitTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(jwtResponse);
 
-        verify(idempotencyService).wrap(any(), any(), any());
+        verify(idempotencyService).process(any(), any(), any());
         verify(authService).login(loginRequest);
     }
 

@@ -2,7 +2,9 @@ package me.stinper.jwtauth.utils;
 
 import org.springframework.lang.NonNull;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,5 +23,11 @@ public final class LoggingUtils {
 
     public static String logFieldErrorsListLineSeparated(@NonNull List<FieldError> fieldErrors) {
         return logFieldErrorsList(fieldErrors, "\n");
+    }
+
+    public static String logObjectErrorsList(@NonNull List<ObjectError> objectErrors, @NonNull String delimiter) {
+        return objectErrors.stream()
+                .map(oe -> "[" + oe.getCode() + ", " + oe.getDefaultMessage() + "]")
+                .collect(Collectors.joining(delimiter));
     }
 }

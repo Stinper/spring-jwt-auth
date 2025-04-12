@@ -1,18 +1,17 @@
 package me.stinper.jwtauth.exception;
 
-import lombok.Getter;
 
-@Getter
-public class ResourceNotFoundException extends RuntimeException {
-    private final String errorMessageCode;
-    private Object[] args;
+import java.io.Serial;
+
+public class ResourceNotFoundException extends BaseApiException {
+    @Serial
+    private static final long serialVersionUID = 8367612520779492958L;
 
     public ResourceNotFoundException(String errorMessageCode, Object... args) {
-        this.errorMessageCode = errorMessageCode;
-        this.args = args;
+        super(errorMessageCode, args);
     }
 
     public ResourceNotFoundException(String errorMessageCode) {
-        this.errorMessageCode = errorMessageCode;
+        super(errorMessageCode);
     }
 }

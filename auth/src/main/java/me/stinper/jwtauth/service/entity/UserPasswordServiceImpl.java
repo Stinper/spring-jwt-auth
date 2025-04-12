@@ -9,6 +9,7 @@ import me.stinper.jwtauth.exception.EntityValidationException;
 import me.stinper.jwtauth.repository.UserRepository;
 import me.stinper.jwtauth.service.authentication.contract.JwtService;
 import me.stinper.jwtauth.service.entity.contract.UserPasswordService;
+import me.stinper.jwtauth.utils.LoggingUtils;
 import me.stinper.jwtauth.validation.PasswordChangeValidator;
 import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,12 +30,15 @@ public class UserPasswordServiceImpl implements UserPasswordService {
     @Transactional
     public void changePassword(@NonNull PasswordChangeRequest passwordChangeRequest, @NonNull JwtAuthUserDetails userDetails) {
 
-        log.atDebug().log("[#changePassword]: Начало выполнение метода. Пользователь: {}", userDetails.getUuid());
+        log.atDebug().log("[#changePassword]: Начало выполнение метода. Пользователь: '{}'", userDetails.getUuid());
 
         Errors validationErrors = passwordChangeValidator.validateObject(passwordChangeRequest);
 
         if (validationErrors.hasFieldErrors()) {
-            log.atWarn().log("[#changePassword]: Попытка смены пароля для пользователя '{}' не удалась", userDetails.getUuid());
+            log.atDebug().log(() -> "[#changePassword]: Попытка смены пароля для пользователя '" + userDetails.getUuid() + "' не удалась \n\tСписок ошибок: \n"
+                    + LoggingUtils.logFieldErrorsListLineSeparated(validationErrors.getFieldErrors())
+            );
+
             throw new EntityValidationException(validationErrors.getFieldErrors());
         }
 
@@ -47,6 +51,6 @@ public class UserPasswordServiceImpl implements UserPasswordService {
         userRepository.save(user);
         jwtService.invalidateRefreshTokens(user);
 
-        log.atInfo().log("[#changePassword]: Пользователь '{}' успешно изменил свой пароль", user.getUuid());
+        log.atInfo().log("[#changePassword]: Пароль пользователя '{}' успешно изменен", user.getUuid());
     }
 }

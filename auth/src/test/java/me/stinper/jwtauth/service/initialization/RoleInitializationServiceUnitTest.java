@@ -26,7 +26,10 @@ class RoleInitializationServiceUnitTest {
 
     @BeforeEach
     void setUp() {
-        this.roleInitializationService = spy(new RoleInitializationService(roleRepository, adminRoleName, adminRolePrefix));
+        this.roleInitializationService = spy(new RoleInitializationService(roleRepository));
+
+        roleInitializationService.setAdminRoleName(adminRoleName);
+        roleInitializationService.setAdminRolePrefix(adminRolePrefix);
     }
 
     @Test

@@ -1,5 +1,8 @@
 package me.stinper.jwtauth.service.initialization;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.stinper.jwtauth.entity.Role;
 import me.stinper.jwtauth.repository.RoleRepository;
@@ -11,24 +14,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class RoleInitializationService implements InitializationService<Role> {
     private final RoleRepository roleRepository;
-    private final String adminRoleName;
-    private final String adminRolePrefix;
 
-    public RoleInitializationService(RoleRepository roleRepository,
-                                     @Value("${app.auth.security.admin-role-name}") String adminRoleName,
-                                     @Value("${app.auth.security.admin-role-prefix}") String adminRolePrefix) {
-        this.roleRepository = roleRepository;
-        this.adminRoleName = adminRoleName;
-        this.adminRolePrefix = adminRolePrefix;
-    }
+    @Value("${app.auth.security.admin-role-name}")
+    @Setter(AccessLevel.PACKAGE)
+    private String adminRoleName;
+
+    @Value("${app.auth.security.admin-role-prefix}")
+    @Setter(AccessLevel.PACKAGE)
+    private String adminRolePrefix;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Role initialize() {
         if (this.isAlreadyInitialized()) {
-            log.atInfo().log("Инициализация роли администратора не требуется");
+            log.atInfo().log("[#initialize]: Инициализация роли администратора не требуется");
             return null;
         }
 
@@ -38,14 +40,16 @@ public class RoleInitializationService implements InitializationService<Role> {
                 .build();
 
         role = roleRepository.save(role);
-        log.atInfo().log("Инициализация роли администратора прошла успешно. Имя роли - {}", this.adminRoleName);
+        log.atInfo().log("[#initialize]: Инициализация роли администратора прошла успешно \n\tИмя роли: '{}'", this.adminRoleName);
 
         return role;
     }
 
     @Override
     public boolean isAlreadyInitialized() {
-        log.atInfo().log("Стратегия инициализации роли администратора - {}", this.getInitializationMode().toString());
+        log.atInfo().log("[#isAlreadyInitialized]: Стратегия инициализации роли администратора: '{}'",
+                this.getInitializationMode().toString()
+        );
 
         if (this.getInitializationMode() == InitializationMode.ON_TABLE_EMPTY)
             return !roleRepository.isTableEmpty();

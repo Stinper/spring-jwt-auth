@@ -33,7 +33,8 @@ class JwtServiceImplUnitTest {
 
     @BeforeEach
     void setUp() {
-        this.jwtService = new JwtServiceImpl(refreshTokenRepository, jwtProvider, refreshTokenExpiration);
+        this.jwtService = new JwtServiceImpl(refreshTokenRepository, jwtProvider);
+        jwtService.setRefreshTokenExpiration(refreshTokenExpiration);
     }
 
 

@@ -1,5 +1,6 @@
 package me.stinper.jwtauth.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -68,7 +69,7 @@ public class AuthController {
     )
     public ResponseEntity<JwtResponse> login(@RequestHeader(Headers.X_IDEMPOTENCY_KEY) UUID idempotencyKey,
                                              @RequestBody LoginRequest loginRequest)
-            throws AuthenticationException {
+            throws AuthenticationException, JsonProcessingException {
         Set<ConstraintViolation<LoginRequest>> constraintViolations = this.validator.validate(loginRequest);
 
         if (!constraintViolations.isEmpty())
@@ -76,7 +77,7 @@ public class AuthController {
 
         return ResponseEntity
                 .ok(
-                        idempotencyService.wrap(idempotencyKey, () -> authService.login(loginRequest), JwtResponse.class)
+                        idempotencyService.process(idempotencyKey, () -> authService.login(loginRequest), JwtResponse.class)
                 );
     }
 

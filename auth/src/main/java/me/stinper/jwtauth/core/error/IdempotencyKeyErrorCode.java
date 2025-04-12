@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum IdempotencyKeyErrorCode {
-    KEY_NOT_UNIQUE("idempotency-keys.key-not-unique");
+    KEY_IS_EXPIRED("idempotency-keys.expired");
 
     private final String code;
 }

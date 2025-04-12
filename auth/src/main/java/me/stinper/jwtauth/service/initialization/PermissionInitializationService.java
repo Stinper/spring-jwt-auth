@@ -40,14 +40,14 @@ public class PermissionInitializationService implements InitializationService<Li
     @Override
     public List<Permission> initialize() {
         if (this.isAlreadyInitialized()) {
-            log.atInfo().log("Инициализация прав доступа не требуется");
+            log.atInfo().log("[#initialize]: Инициализация прав доступа не требуется");
             return null;
         }
 
         Set<Permission> uninitializedPermissions = findPermissionDifference(scannedPermissions, existingPermissions);
 
         log.atDebug().log(
-                () -> "Найдено " + uninitializedPermissions.size() + " прав доступа, которые не были инициализированы:\n" +
+                () -> "[#initialize]: Обнаружено " + uninitializedPermissions.size() + " прав доступа, которые не были инициализированы:\n" +
                         uninitializedPermissions.stream()
                                 .map(p -> "\t[" + p.getPermission() + ", " + p.getDescription() + "]")
                                 .collect(Collectors.joining("\n"))
@@ -55,14 +55,14 @@ public class PermissionInitializationService implements InitializationService<Li
 
         var initializedPermissions = permissionRepository.saveAll(uninitializedPermissions);
 
-        log.atInfo().log("Все права доступа успешно инициализированы");
+        log.atInfo().log("[#initialize]: Все права доступа успешно инициализированы");
 
         return initializedPermissions;
     }
 
     @Override
     public boolean isAlreadyInitialized() {
-        log.atInfo().log("Стратегия инициализации прав доступа - {}", this.getInitializationMode().toString());
+        log.atInfo().log("[#isAlreadyInitialized]: Стратегия инициализации прав доступа: '{}'", this.getInitializationMode().toString());
 
         if (this.getInitializationMode() == InitializationMode.ON_TABLE_EMPTY)
             return !permissionRepository.isTableEmpty();

@@ -40,11 +40,12 @@ class AdminAccountInitializationServiceUnitTest {
                 roleInitializationService,
                 userRepository,
                 roleRepository,
-                passwordEncoder,
-                adminAccountEmail,
-                adminAccountPassword,
-                adminRoleName
+                passwordEncoder
         ));
+
+        adminAccountInitializationService.setAdminAccountEmail(adminAccountEmail);
+        adminAccountInitializationService.setAdminAccountPassword(adminAccountPassword);
+        adminAccountInitializationService.setAdminRoleName(adminRoleName);
     }
 
 

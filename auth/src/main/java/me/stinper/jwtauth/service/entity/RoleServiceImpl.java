@@ -68,13 +68,13 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Optional<RoleDto> findByName(@NonNull String name) {
-        log.atDebug().log("[#findByName]: Начало выполнения метода. Имя роли: {}", name);
+        log.atDebug().log("[#findByName]: Начало выполнения метода. Имя роли: '{}'", name);
 
         Optional<RoleDto> role = roleRepository.findByRoleNameIgnoreCase(name)
                 .map(roleMapper::toRoleDto);
 
         role.ifPresentOrElse(
-                (presentedRole) -> log.atDebug().log("[#findByName]: Роль с именем {} найдена: {}", name, role),
+                (presentedRole) -> log.atDebug().log("[#findByName]: Роль с именем '{}' найдена", name),
                 () -> log.atDebug().log("[#findByName]: Роль с именем '{}' не найдена", name)
         );
 
@@ -83,7 +83,11 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public RoleDto create(@NonNull RoleCreationRequest roleCreationRequest) {
-        log.atDebug().log(() -> "[#create]: Начало выполнения метода. Информация о запросе: " + roleCreationRequest);
+        log.atDebug().log(() -> "[#create]: Начало выполнения метода. Информация о запросе: \n\tИмя роли '" + roleCreationRequest.roleName() +
+                "'\n\tПрефикс: '" + roleCreationRequest.prefix() +
+                "'\n\tСписок прав доступа: " + roleCreationRequest.permissions()
+        );
+
         Errors roleCreationErrors = roleCreationValidator.validateObject(roleCreationRequest);
 
         if (roleCreationErrors.hasFieldErrors()) {
@@ -93,7 +97,7 @@ public class RoleServiceImpl implements RoleService {
             throw new EntityValidationException(roleCreationErrors.getFieldErrors());
         }
 
-        log.atDebug().log("[#create]: Валидация запроса на создания роли успешно пройдена");
+        log.atDebug().log("[#create]: Валидация запроса на создание роли успешно пройдена");
 
         Role role = roleMapper.toRole(roleCreationRequest);
         role = roleRepository.save(role);

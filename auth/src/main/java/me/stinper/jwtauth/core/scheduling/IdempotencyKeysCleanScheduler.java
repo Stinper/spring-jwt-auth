@@ -27,8 +27,8 @@ public class IdempotencyKeysCleanScheduler {
         int recordsCleaned = idempotencyKeyRepository.deleteByIssuedAtBefore(cleanPeriod);
 
         if (recordsCleaned > 0)
-            log.info("Проведена очистка истекших ключей идемпотентности. Затронуто записей: {}", recordsCleaned);
+            log.info("[#cleanExpiredIdempotencyKeys]: Проведена очистка истекших ключей идемпотентности. Затронуто записей: {}", recordsCleaned);
         else
-            log.info("Очистка истекших ключей идемпотентности была запущена, но не затронула ни одной записи");
+            log.info("[#cleanExpiredIdempotencyKeys]: Очистка истекших ключей идемпотентности была запущена, но не затронула ни одной записи");
     }
 }

@@ -3,10 +3,9 @@ package me.stinper.jwtauth.service.entity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.stinper.jwtauth.entity.IdempotencyKey;
+import me.stinper.jwtauth.exception.IdempotencyKeyExpiredException;
 import me.stinper.jwtauth.exception.ObjectValueValidationException;
 import me.stinper.jwtauth.repository.IdempotencyKeyRepository;
-import me.stinper.jwtauth.service.entity.IdempotencyServiceImpl;
-import me.stinper.jwtauth.validation.IdempotencyKeyValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -27,116 +27,141 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Unit Tests for IdempotencyServiceImpl class")
 class IdempotencyServiceImplUnitTest {
-    @Mock private IdempotencyKeyRepository idempotencyKeyRepository;
-    @Mock private ObjectMapper objectMapper;
-    @Mock private IdempotencyKeyValidator idempotencyKeyValidator;
+    @Mock
+    private IdempotencyKeyRepository idempotencyKeyRepository;
+    @Mock
+    private ObjectMapper objectMapper;
+
+    private final Duration idempotencyPeriod = Duration.ofDays(1);
 
     private IdempotencyServiceImpl idempotencyService;
-    private TestData testData;
 
     @BeforeEach
     void setUp() {
-        this.idempotencyService = new IdempotencyServiceImpl(
-                idempotencyKeyRepository, objectMapper, idempotencyKeyValidator, Duration.ofMinutes(5)
-        );
-
-        this.testData = new TestData();
-    }
-
-    @Test
-    @DisplayName("[#process]: Checks that the method returns a result if the idempotence key is valid")
-    void process_whenIdempotencyKeyIsValid_thenReturnsResult() throws JsonProcessingException {
-        //GIVEN
-        when(idempotencyKeyRepository.findByKey(testData.IDEMPOTENCY_KEY_VALUE)).thenReturn(Optional.of(testData.PERSON_RESPONSE_IDEMPOTENCY_KEY));
-        when(objectMapper.readValue(testData.PERSON_JSON_REPRESENTATION, TestData.Person.class)).thenReturn(testData.PERSON);
-
-        //WHEN
-        var person = idempotencyService.process(testData.IDEMPOTENCY_KEY_VALUE, TestData.Person.class);
-
-        //THEN
-        assertThat(person).isEqualTo(testData.PERSON);
-
-        verify(idempotencyKeyRepository, times(1)).findByKey(testData.IDEMPOTENCY_KEY_VALUE);
+        this.idempotencyService = new IdempotencyServiceImpl(idempotencyKeyRepository, objectMapper);
+        idempotencyService.setIdempotencyPeriod(idempotencyPeriod);
     }
 
 
     @Test
-    @DisplayName("[#process]: Checks that the method returns NULL if the idempotence key is NOT valid")
-    void process_whenIdempotencyKeyIsInvalid_thenReturnsNull() throws JsonProcessingException {
+    void process_whenIdempotencyKeyExistsAndNotExpired_thenReturnsSavedResultAndNeverInvokesService() throws JsonProcessingException {
         //GIVEN
-        when(idempotencyKeyRepository.findByKey(testData.IDEMPOTENCY_KEY_VALUE)).thenReturn(Optional.empty());
+        final UUID idempotencyKey = UUID.fromString("bd4620ef-cb3c-4da8-b10e-47b100489d5b");
+        final String contentData = "CONTENT_DATA";
 
-        //WHEN
-        var person = idempotencyService.process(testData.IDEMPOTENCY_KEY_VALUE, TestData.Person.class);
+        final Person person = new Person("Ivan", "Ivanov");
 
-        //THEN
-        assertThat(person).isNull();
-
-        verify(idempotencyKeyRepository, times(1)).findByKey(testData.IDEMPOTENCY_KEY_VALUE);
-    }
-
-
-    @Test
-    @DisplayName("[#write]: Checks that the method saves data to the database if the idempotence key is valid")
-    void write_whenIdempotencyKeyIsValid_thenSave() throws JsonProcessingException {
-        //GIVEN
-        IdempotencyKey unsavedKey = IdempotencyKey.builder()
-                .key(testData.IDEMPOTENCY_KEY_VALUE)
-                .responseData(testData.PERSON_JSON_REPRESENTATION)
+        final IdempotencyKey key = IdempotencyKey.builder()
+                .id(1L)
+                .key(idempotencyKey)
+                .issuedAt(Instant.now())
+                .responseData(contentData)
                 .build();
 
-        //Empty Errors Object (request is valid)
-        when(idempotencyKeyValidator.validateObject(testData.IDEMPOTENCY_KEY_VALUE))
-                .thenReturn(new SimpleErrors(testData.IDEMPOTENCY_KEY_VALUE));
+        /*
+            Imitating service operation which should NOT be called
+            !!! DO NOT REPLACE THIS WITH LAMBDA, LAMBDAS ARE FINAL, AND SPY() NEEDS TO CREATE A PROXY, IT WILL NOT WORK !!!
+         */
+        final Supplier<Person> serviceOperation = spy(new Supplier<>() {
+            @Override
+            public Person get() {
+                throw new IllegalStateException();
+            }
+        });
 
-        when(objectMapper.writeValueAsString(testData.PERSON)).thenReturn(testData.PERSON_JSON_REPRESENTATION);
+        when(idempotencyKeyRepository.findByKey(idempotencyKey)).thenReturn(Optional.of(key));
+        when(objectMapper.readValue(contentData, Person.class)).thenReturn(person);
 
         //WHEN
-        idempotencyService.write(testData.IDEMPOTENCY_KEY_VALUE, testData.PERSON);
+        Person response = idempotencyService.process(idempotencyKey, serviceOperation, Person.class);
 
         //THEN
-        verify(idempotencyKeyRepository, times(1)).save(unsavedKey);
+        assertThat(response).isEqualTo(person);
+
+        verify(idempotencyKeyRepository).findByKey(idempotencyKey);
+        verify(objectMapper).readValue(contentData, Person.class);
+
+        verifyNoMoreInteractions(idempotencyKeyRepository, objectMapper);
+        verifyNoInteractions(serviceOperation);
     }
 
 
     @Test
-    @DisplayName("[#write]: Checks that the method throws an exception if the idempotence key is NOT valid")
-    void write_whenIdempotencyKeyIsInvalid_thenThrowsException() throws JsonProcessingException {
+    void process_whenIdempotencyKeyIsExpired_thenThrowsException() {
         //GIVEN
-        Errors idempotencyKeyValidationErrors = new SimpleErrors(testData.IDEMPOTENCY_KEY_VALUE);
-        idempotencyKeyValidationErrors.reject("ERROR_CODE");
+        final UUID idempotencyKey = UUID.fromString("bd4620ef-cb3c-4da8-b10e-47b100489d5b");
 
-        when(idempotencyKeyValidator.validateObject(testData.IDEMPOTENCY_KEY_VALUE)).thenReturn(idempotencyKeyValidationErrors);
+        final IdempotencyKey key = IdempotencyKey.builder()
+                .id(1L)
+                .key(idempotencyKey)
+                .issuedAt(Instant.now().minus(idempotencyPeriod.multipliedBy(2))) //Expired
+                .build();
+
+        /*
+            Imitating service operation which should NOT be called
+            !!! DO NOT REPLACE THIS WITH LAMBDA, LAMBDAS ARE FINAL, AND SPY() NEEDS TO CREATE A PROXY, IT WILL NOT WORK !!!
+         */
+        final Supplier<Person> serviceOperation = spy(new Supplier<>() {
+            @Override
+            public Person get() {
+                throw new IllegalStateException();
+            }
+        });
+
+        when(idempotencyKeyRepository.findByKey(idempotencyKey)).thenReturn(Optional.of(key));
 
         //WHEN & THEN
-        assertThatExceptionOfType(ObjectValueValidationException.class)
-                .isThrownBy(() -> idempotencyService.write(testData.IDEMPOTENCY_KEY_VALUE, null))
-                .satisfies(ex ->
-                        assertThat(ex.getObjectErrors())
-                                .hasSize(1)
-                );
+        assertThatExceptionOfType(IdempotencyKeyExpiredException.class)
+                .isThrownBy(() -> idempotencyService.process(idempotencyKey, serviceOperation, Person.class))
+                .satisfies(ex -> {
+                    assertThat(ex.getErrorMessageCode()).isEqualTo("messages.idempotency-key.expired");
+                    assertThat(ex.getArgs()).containsExactly(idempotencyKey);
+                });
+
+        verify(idempotencyKeyRepository).findByKey(idempotencyKey);
+        verifyNoMoreInteractions(idempotencyKeyRepository);
+
+        verifyNoInteractions(objectMapper, serviceOperation);
     }
 
-    private static class TestData {
-        final UUID IDEMPOTENCY_KEY_VALUE = UUID.randomUUID();
 
-        final Person PERSON = new Person("Ivan", "Ivanov");
+    @Test
+    void process_whenIdempotencyKeyDoesNotExist_thenInvokesServiceAndSavesKey() throws JsonProcessingException {
+        //GIVEN
+        final UUID idempotencyKey = UUID.fromString("bd4620ef-cb3c-4da8-b10e-47b100489d5b");
+        final Person person = new Person("Ivan", "Ivanov");
+        final String jsonValue = "JSON_VALUE";
 
-        final String PERSON_JSON_REPRESENTATION = "{\"firstName\":\"Ivan\",\"lastName\":\"Ivanov\"}";
+        /*
+            Imitating service operation which should be called
+            !!! DO NOT REPLACE THIS WITH LAMBDA, LAMBDAS ARE FINAL, AND SPY() NEEDS TO CREATE A PROXY, IT WILL NOT WORK !!!
+         */
+        final Supplier<Person> serviceOperation = spy(new Supplier<>() {
+            @Override
+            public Person get() {
+                return person;
+            }
+        });
 
-        final IdempotencyKey PERSON_RESPONSE_IDEMPOTENCY_KEY = IdempotencyKey.builder()
-                .id(1L)
-                .key(IDEMPOTENCY_KEY_VALUE)
-                .issuedAt(Instant.now())
-                .responseData(PERSON_JSON_REPRESENTATION)
-                .build();
+        when(idempotencyKeyRepository.findByKey(idempotencyKey)).thenReturn(Optional.empty());
+        when(objectMapper.writeValueAsString(person)).thenReturn(jsonValue);
 
-        public record Person (
-                String firstName,
-                String lastName
-        ) {}
+        //WHEN
+        Person response = idempotencyService.process(idempotencyKey, serviceOperation, Person.class);
 
+        //THEN
+        assertThat(response).isEqualTo(person);
 
+        verify(idempotencyKeyRepository).findByKey(idempotencyKey);
+        verify(idempotencyKeyRepository).save(
+                argThat(arg -> arg.getKey().equals(idempotencyKey) && arg.getResponseData().equals(jsonValue))
+        );
+
+        verify(objectMapper).writeValueAsString(person);
+
+        verify(serviceOperation).get();
     }
 
+
+    private record Person(String firstName, String lastName) {}
 }

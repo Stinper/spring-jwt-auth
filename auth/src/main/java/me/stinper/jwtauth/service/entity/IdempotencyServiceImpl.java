@@ -2,79 +2,78 @@ package me.stinper.jwtauth.service.entity;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.stinper.jwtauth.entity.IdempotencyKey;
-import me.stinper.jwtauth.exception.ObjectValueValidationException;
+import me.stinper.jwtauth.exception.IdempotencyKeyExpiredException;
 import me.stinper.jwtauth.repository.IdempotencyKeyRepository;
 import me.stinper.jwtauth.service.entity.contract.IdempotencyService;
-import me.stinper.jwtauth.validation.IdempotencyKeyValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Errors;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class IdempotencyServiceImpl implements IdempotencyService {
     private final IdempotencyKeyRepository idempotencyKeyRepository;
     private final ObjectMapper objectMapper;
-    private final IdempotencyKeyValidator idempotencyKeyValidator;
-    private final Duration idempotencyPeriod;
 
-    public IdempotencyServiceImpl(IdempotencyKeyRepository idempotencyKeyRepository,
-                                  ObjectMapper objectMapper,
-                                  IdempotencyKeyValidator idempotencyKeyValidator,
-                                  @Value("${app.idempotency-period}") Duration idempotencyPeriod) {
-        this.idempotencyKeyRepository = idempotencyKeyRepository;
-        this.objectMapper = objectMapper;
-        this.idempotencyKeyValidator = idempotencyKeyValidator;
-        this.idempotencyPeriod = idempotencyPeriod;
-    }
+    @Value("${app.idempotency-period}")
+    @Setter(AccessLevel.PACKAGE)
+    private Duration idempotencyPeriod;
 
     @Override
-    public <T> T process(@NonNull UUID idempotencyKey, @NonNull Class<T> targetType) throws JsonProcessingException {
+    @Transactional
+    public <T> T process(@NonNull UUID idempotencyKey, @NonNull Supplier<T> serviceOperation, @NonNull Class<T> targetType)
+            throws JsonProcessingException {
         log.atDebug().log("[#process]: Начало выполнение метода. Ключ идемпотентности: '{}'", idempotencyKey);
 
         IdempotencyKey key = idempotencyKeyRepository.findByKey(idempotencyKey).orElse(null);
 
-        if (key == null || ChronoUnit.MINUTES.between(key.getIssuedAt(), Instant.now()) > idempotencyPeriod.toMinutes()) {
-            log.atDebug().log("[#process]: Ключ идемпотентности со значением '{}' не найден или недействителен", idempotencyKey);
-            return null;
+        if (key != null) {
+            if (ChronoUnit.MINUTES.between(key.getIssuedAt(), Instant.now()) <= idempotencyPeriod.toMinutes()) {
+                log.atInfo().log("[#process]: Ключ идемпотентности со значением '{}' найден и действителен. " +
+                        "Данные взяты из БД, операция не выполнена повторно", idempotencyKey);
+
+                return objectMapper.readValue(key.getResponseData(), targetType);
+            }
+
+            log.atWarn().log("[#process]: Ключ идемпотентности со значением '{}' имеет истекший срок действия", idempotencyKey);
+            throw new IdempotencyKeyExpiredException("messages.idempotency-key.expired", idempotencyKey);
         }
 
-        String jsonBody = key.getResponseData();
-        log.atInfo().log("[#process]: Ключ идемпотентности со значением '{}' найден и действителен. Сохраненные данные взяты из БД", idempotencyKey);
+        log.atDebug().log("[#process]: Ключ идемпотентности со значением '{}' не существует, подготовка к выполнению операции",
+                idempotencyKey
+        );
 
-        return objectMapper.readValue(jsonBody, targetType);
-    }
+        T responseData = serviceOperation.get();
 
-    @Override
-    public <T> void write(@NonNull UUID idempotencyKey, @NonNull T data) throws JsonProcessingException {
-        log.atDebug().log("[#write]: Начало выполнение метода. Ключ идемпотентности: '{}'", idempotencyKey);
+        log.atDebug().log("[#process]: Операция успешно выполнена, подготовка к сохранению результата операции");
 
-        Errors idempotencyKeyErrors = idempotencyKeyValidator.validateObject(idempotencyKey);
-
-        if (idempotencyKeyErrors.hasErrors()) {
-            log.atWarn().log(() -> "[#write]: Ошибка валидации ключа идемпотентности: " + idempotencyKeyErrors.getAllErrors());
-            throw new ObjectValueValidationException(idempotencyKeyErrors.getAllErrors());
-        }
-
-        IdempotencyKey key = IdempotencyKey.builder()
+        IdempotencyKey newIdempotencyKey = IdempotencyKey.builder()
                 .key(idempotencyKey)
-                .responseData(objectMapper.writeValueAsString(data))
+                .responseData(objectMapper.writeValueAsString(responseData))
                 .build();
 
-        log.atDebug().log(() -> "[#write]: Ключ идемпотентности со значением '" + idempotencyKey + "' успешно построен. Данные, привязанные к ключу: " + data);
+        log.atDebug().log(() -> "[#process]: Ключ идемпотентности со значением '" + idempotencyKey + "' успешно построен " +
+                "\n\tДанные, привязанные к ключу: " + responseData
+        );
 
-        idempotencyKeyRepository.save(key);
+        idempotencyKeyRepository.save(newIdempotencyKey);
 
-        log.atInfo().log("[#write]: Ключ идемпотентности со значением '{}' успешно записан в БД", idempotencyKey);
+        log.atInfo().log("[#process]: Ключ идемпотентности со значением '{}' успешно записан в БД", idempotencyKey);
+
+        return responseData;
     }
-
-
 }
