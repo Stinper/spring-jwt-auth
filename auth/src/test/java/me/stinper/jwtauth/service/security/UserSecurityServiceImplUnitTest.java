@@ -27,8 +27,6 @@ import static org.mockito.Mockito.*;
 @DisplayName("Unit Tests for UserSecurityServiceImpl class")
 @ExtendWith(MockitoExtension.class)
 class UserSecurityServiceImplUnitTest {
-    private static final String ADMIN_ROLE_NAME = "ROLE_ADMIN";
-
     @Spy private AuthorityChecker authorityChecker;
     @Mock private UserRepository userRepository;
 

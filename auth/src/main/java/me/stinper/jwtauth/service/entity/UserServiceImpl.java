@@ -100,7 +100,7 @@ public class UserServiceImpl implements UserService {
         log.atDebug().log("[#create]: Валидация запроса на создание пользователя успешно пройдена");
 
         User user = userMapper.toUser(userCreationRequest);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(userCreationRequest.password()));
 
         log.atDebug().log("[#create]: Пароль пользователя успешно захеширован");
 

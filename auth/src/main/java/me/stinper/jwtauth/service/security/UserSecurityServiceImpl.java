@@ -57,5 +57,4 @@ public class UserSecurityServiceImpl implements UserSecurityService {
 
         return new ActiveUserFilterStrategy();
     }
-
 }

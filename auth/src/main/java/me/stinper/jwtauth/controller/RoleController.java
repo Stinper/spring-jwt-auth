@@ -21,6 +21,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -43,6 +44,7 @@ public class RoleController {
             permission = "role.read.find-all-roles",
             description = "Пользователь с этим правом может просматривать список всех ролей, существующих в системе"
     )
+    @PreAuthorize("@roleSecurityService.isAllowedToFindAllRoles(principal)")
     @Operation(
             summary = "Получение всех ролей",
             description = "Предназначен для получения всех ролей в постраничном формате, т.е. с использованием пагинации",
@@ -68,6 +70,7 @@ public class RoleController {
             permission = "role.read.find-role-by-name",
             description = "Пользователь с этим правом может информацию о роли по ее имени"
     )
+    @PreAuthorize("@roleSecurityService.isAllowedToFindRoleByName(#roleName, principal)")
     @Operation(
             summary = "Получение роли по уникальному имени",
             description = "Предназначен для получения одной роли по ее уникальному имени",
@@ -105,6 +108,7 @@ public class RoleController {
             permission = "role.create.create-role",
             description = "Пользователь с этим правом может создавать новую роль в системе"
     )
+    @PreAuthorize("@roleSecurityService.isAllowedToCreateRole(principal)")
     @Operation(
             summary = "Создание роли",
             description = "Предназначен для создания новой роли",
@@ -148,6 +152,7 @@ public class RoleController {
             permission = "role.update.partial.permissions-list",
             description = "Пользователь с этим правом может обновлять список прав доступа для роли по ее идентификатору"
     )
+    @PreAuthorize("@roleSecurityService.isAllowedToUpdateRolePermissions(#roleName, principal)")
     @Operation(
             summary = "Обновление списка прав доступа",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -197,6 +202,7 @@ public class RoleController {
             permission = "role.delete.delete-role-by-name",
             description = "Пользователь с этим правом может удалять роли"
     )
+    @PreAuthorize("@roleSecurityService.isAllowedToDeleteRoleByName(#roleName, principal)")
     @Operation(
             summary = "Удаление роли",
             description = "Предназначен для удаления роли по заданному уникальному имени",
