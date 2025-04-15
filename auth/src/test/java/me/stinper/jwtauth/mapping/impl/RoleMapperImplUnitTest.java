@@ -16,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
@@ -46,7 +45,7 @@ class RoleMapperImplUnitTest {
         final PermissionDto firstPermissionDto = new PermissionDto(1L, "first.permission", null);
         final PermissionDto secondPermissionDto = new PermissionDto(2L, "second.permission", "Description");
 
-        final Role role = new Role(1L, "ROLE_ADMIN", "Администратор", List.of(firstPermission, secondPermission));
+        final Role role = new Role(1L, "ROLE_ADMIN", "Администратор", Set.of(firstPermission, secondPermission));
 
         when(permissionMapper.toPermissionDto(firstPermission)).thenReturn(firstPermissionDto);
         when(permissionMapper.toPermissionDto(secondPermission)).thenReturn(secondPermissionDto);
@@ -58,7 +57,7 @@ class RoleMapperImplUnitTest {
         assertThat(roleDto.id()).isEqualTo(role.getId());
         assertThat(roleDto.roleName()).isEqualTo(role.getRoleName());
         assertThat(roleDto.prefix()).isEqualTo(role.getPrefix());
-        assertThat(roleDto.permissions()).containsExactly(firstPermissionDto, secondPermissionDto);
+        assertThat(roleDto.permissions()).containsExactlyInAnyOrder(firstPermissionDto, secondPermissionDto);
 
         verify(permissionMapper).toPermissionDto(firstPermission);
         verify(permissionMapper).toPermissionDto(secondPermission);
@@ -70,7 +69,7 @@ class RoleMapperImplUnitTest {
     @Test
     void toRoleDto_whenRoleHasNoPermissions_thenConvertsAllFieldsCorrectly() {
         //GIVEN
-        final Role role = new Role(1L, "ROLE_ADMIN", "Администратор", Collections.emptyList());
+        final Role role = new Role(1L, "ROLE_ADMIN", "Администратор", Collections.emptySet());
 
         //WHEN
         RoleDto roleDto = this.roleMapper.toRoleDto(role);
@@ -105,7 +104,7 @@ class RoleMapperImplUnitTest {
                 .permissions(permissions)
                 .build();
 
-        when(permissionRepository.findAllByPermissionIn(permissions)).thenReturn(List.of(firstPermission, secondPermission));
+        when(permissionRepository.findAllByPermissionIn(permissions)).thenReturn(Set.of(firstPermission, secondPermission));
 
         //WHEN
         Role mappedRole = this.roleMapper.toRole(roleCreationRequest);
@@ -114,7 +113,7 @@ class RoleMapperImplUnitTest {
         assertThat(mappedRole.getId()).isNull(); //Must be generated automatically on the database level
         assertThat(mappedRole.getRoleName()).isEqualTo(roleCreationRequest.roleName());
         assertThat(mappedRole.getPrefix()).isEqualTo(roleCreationRequest.prefix());
-        assertThat(mappedRole.getPermissions()).containsExactly(firstPermission, secondPermission);
+        assertThat(mappedRole.getPermissions()).containsExactlyInAnyOrder(firstPermission, secondPermission);
 
         verify(permissionRepository).findAllByPermissionIn(permissions);
         verifyNoInteractions(permissionMapper);

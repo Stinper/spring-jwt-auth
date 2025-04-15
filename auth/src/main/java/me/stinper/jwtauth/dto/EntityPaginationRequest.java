@@ -19,7 +19,7 @@ public record EntityPaginationRequest(
                 required = true,
                 schema = @Schema(minLength = 0, type = "int")
         )
-        @NotNull(message = "{messages.entity-pagination-request.page.null}")
+        @NotNull(message = "{messages.entity-pagination-request.validation.page.null}")
         @Min(value = 0, message = "{messages.entity-pagination-request.validation.page.negative}")
         Integer page,
 
@@ -30,7 +30,7 @@ public record EntityPaginationRequest(
                 required = true,
                 schema = @Schema(minLength = 0, maxLength = 100, type = "int")
         )
-        @NotNull(message = "{messages.entity-pagination-request.size.null}")
+        @NotNull(message = "{messages.entity-pagination-request.validation.size.null}")
         @Min(value = 0, message = "{messages.entity-pagination-request.validation.size.negative}")
         @Max(value = 100, message = "{messages.entity-pagination-request.validation.size.too-big}")
         Integer size,

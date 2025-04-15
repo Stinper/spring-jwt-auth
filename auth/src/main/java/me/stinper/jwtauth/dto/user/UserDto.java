@@ -47,6 +47,14 @@ public record UserDto(
         @JsonProperty(value = "is_email_verified")
         Boolean isEmailVerified,
 
+        @Schema(
+                title = "Дата и время деакцивации учетной записи",
+                description = "Дата и время, когда учетная запись была деактивирована. Если это поле равно NULL, значит учетная запись активна",
+                nullable = true
+        )
+        @JsonProperty(value = "deactivated_at")
+        Instant deactivatedAt,
+
         @ArraySchema(
                 schema = @Schema(implementation = RoleDto.class),
                 arraySchema = @Schema(

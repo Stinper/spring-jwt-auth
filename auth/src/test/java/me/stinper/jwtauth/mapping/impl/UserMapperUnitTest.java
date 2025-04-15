@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
@@ -41,9 +42,9 @@ class UserMapperUnitTest {
     )
     void toUserDto_convertsAllFieldsCorrectly() {
         //GIVEN
-        final Role firstRole = new Role(1L, "ROLE_MANAGER", "Менеджер", Collections.emptyList());
+        final Role firstRole = new Role(1L, "ROLE_MANAGER", "Менеджер", Collections.emptySet());
         final Role secondRole = new Role(2L, "ROLE_ADMIN", "Администратор",
-                List.of(
+                Set.of(
                         new Permission(1L, "some.permission", null)
                 )
         );
@@ -59,7 +60,7 @@ class UserMapperUnitTest {
                 .uuid(UUID.randomUUID())
                 .email("user@gmail.com")
                 .password("123")
-                .roles(List.of(firstRole, secondRole))
+                .roles(Set.of(firstRole, secondRole))
                 .build();
 
         when(roleMapper.toRoleDto(firstRole)).thenReturn(firstRoleDto);
@@ -73,7 +74,8 @@ class UserMapperUnitTest {
         assertThat(userDto.email()).isEqualTo(user.getEmail());
         assertThat(userDto.isEmailVerified()).isEqualTo(user.getIsEmailVerified());
         assertThat(userDto.registeredAt()).isEqualTo(user.getRegisteredAt());
-        assertThat(userDto.roles()).containsExactly(firstRoleDto, secondRoleDto);
+        assertThat(userDto.deactivatedAt()).isNull();
+        assertThat(userDto.roles()).containsExactlyInAnyOrder(firstRoleDto, secondRoleDto);
 
         verify(roleMapper).toRoleDto(firstRole);
         verify(roleMapper).toRoleDto(secondRole);

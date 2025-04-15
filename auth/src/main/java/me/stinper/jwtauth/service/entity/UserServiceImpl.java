@@ -12,6 +12,7 @@ import me.stinper.jwtauth.mapping.UserMapper;
 import me.stinper.jwtauth.repository.UserRepository;
 import me.stinper.jwtauth.service.authentication.contract.JwtService;
 import me.stinper.jwtauth.service.entity.contract.UserService;
+import me.stinper.jwtauth.service.entity.support.UserFilterStrategy;
 import me.stinper.jwtauth.utils.LoggingUtils;
 import me.stinper.jwtauth.validation.UserCreationValidator;
 import org.springframework.data.domain.Page;
@@ -38,20 +39,29 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
 
     @Override
-    public Page<UserDto> findAll(Pageable pageable) {
+    public Page<UserDto> findAll(@NonNull Pageable pageable, @NonNull UserFilterStrategy userFilterStrategy) {
         try {
             log.atDebug().log(() -> "[#findAll]: Начало выполнения метода. Запрос на пагинацию: " + pageable.toString());
 
-            Page<UserDto> users = userRepository.findAllByDeactivatedAtIsNull(pageable)
-                    .map(userMapper::toUserDto);
+            Page<User> users = userRepository.findAll(pageable);
 
             log.atDebug().log(
-                    "[#findAll]: Выполнение метода завершено. Всего пользователей: {}, всего страниц: {}",
+                    "[#findAll]: Выбраны все записи. \n\tВсего пользователей: {} \n\tВсего страниц: {}",
                     users.getTotalElements(),
                     users.getTotalPages()
             );
 
-            return users;
+            Page<UserDto> filteredUsers = userFilterStrategy
+                    .filterUsersPage(users)
+                    .map(userMapper::toUserDto);
+
+            log.atDebug().log(
+                    "[#findAll]: Проведена фильтрация результирующего списка пользователей. \n\tВсего пользователей: {} \n\tВсего страниц: {}",
+                    users.getTotalElements(),
+                    users.getTotalPages()
+            );
+
+            return filteredUsers;
         }
         catch (PropertyReferenceException pre) {
             log.atWarn().log("[#findAll]: Свойство с именем '{}' не существует", pre.getPropertyName());

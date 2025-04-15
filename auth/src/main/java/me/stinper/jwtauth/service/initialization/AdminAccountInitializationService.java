@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -57,8 +57,8 @@ public class AdminAccountInitializationService implements InitializationService<
             adminRole = roleRepository.findByRoleNameIgnoreCase(this.adminRoleName);
 
         adminRole.ifPresentOrElse(
-                (role) -> adminAccountBuilder.roles(List.of(role)),
-                () -> adminAccountBuilder.roles(Collections.emptyList())
+                (role) -> adminAccountBuilder.roles(Set.of(role)),
+                () -> adminAccountBuilder.roles(Collections.emptySet())
         );
 
         User adminAccount = adminAccountBuilder.build();

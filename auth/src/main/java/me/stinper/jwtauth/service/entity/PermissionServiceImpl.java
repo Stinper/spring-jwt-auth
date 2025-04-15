@@ -138,7 +138,7 @@ public class PermissionServiceImpl implements PermissionService {
         Permission permission = permissionRepository.findById(permissionId).orElse(null);
 
         if (permission != null)
-            return roleRepository.existsByPermissions(Collections.singletonList(permission));
+            return roleRepository.existsByPermissions(Collections.singleton(permission));
 
         return false;
     }

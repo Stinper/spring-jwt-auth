@@ -10,6 +10,8 @@ import me.stinper.jwtauth.exception.EntityValidationException;
 import me.stinper.jwtauth.exception.ResourceNotFoundException;
 import me.stinper.jwtauth.service.entity.contract.UserPasswordService;
 import me.stinper.jwtauth.service.entity.contract.UserService;
+import me.stinper.jwtauth.service.entity.support.UserFilterStrategy;
+import me.stinper.jwtauth.service.security.contract.UserSecurityService;
 import me.stinper.jwtauth.testutils.ConstraintViolationMockSupport;
 import me.stinper.jwtauth.testutils.ServletUriComponentsBuilderMockSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +37,7 @@ import static org.mockito.Mockito.*;
 class UserControllerUnitTest {
     @Mock private UserService userService;
     @Mock private UserPasswordService userPasswordService;
+    @Mock private UserSecurityService userSecurityService;
     @Mock private jakarta.validation.Validator validator;
 
     @InjectMocks
@@ -55,7 +58,7 @@ class UserControllerUnitTest {
         );
 
         //WHEN & THEN
-        assertThatThrownBy(() -> userController.findAll(invalidPaginationRequest))
+        assertThatThrownBy(() -> userController.findAll(invalidPaginationRequest, mock(JwtAuthUserDetails.class)))
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining(errorMessage);
 
@@ -82,8 +85,12 @@ class UserControllerUnitTest {
                 .email("seconduser@gmail.com")
                 .build();
 
+        JwtAuthUserDetails user = mock(JwtAuthUserDetails.class);
+        UserFilterStrategy userFilterStrategy = mock(UserFilterStrategy.class);
+
         when(validator.validate(any())).thenReturn(Collections.emptySet());
-        when(userService.findAll(pageable)).thenReturn(
+        when(userSecurityService.chooseUserFilterStrategy(user)).thenReturn(userFilterStrategy);
+        when(userService.findAll(pageable, userFilterStrategy)).thenReturn(
                 new PageImpl<>(
                         List.of(firstUser, secondUser),
                         pageable,
@@ -92,7 +99,7 @@ class UserControllerUnitTest {
         );
 
         //WHEN
-        ResponseEntity<Page<UserDto>> result = userController.findAll(validEntityPaginationRequest);
+        ResponseEntity<Page<UserDto>> result = userController.findAll(validEntityPaginationRequest, user);
 
         //THEN
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -100,7 +107,7 @@ class UserControllerUnitTest {
                 .hasSize(2)
                 .contains(firstUser, secondUser);
 
-        verify(userService).findAll(pageable);
+        verify(userService).findAll(pageable, userFilterStrategy);
     }
 
 

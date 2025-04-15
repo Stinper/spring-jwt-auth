@@ -13,10 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -191,7 +188,7 @@ class AdminAccountInitializationServiceUnitTest {
                 .email("admin@gmail.com")
                 .password(TestData.HASHED_PASSWORD)
                 .isEmailVerified(true)
-                .roles(Collections.emptyList())
+                .roles(Collections.emptySet())
                 .build();
 
         when(userRepository.save(any())).thenReturn(adminUser);
@@ -210,7 +207,7 @@ class AdminAccountInitializationServiceUnitTest {
 
 
     private static class TestData {
-        static final Role ADMIN_ROLE = new Role(1L, "ROLE_ADMIN", "Администратор", Collections.emptyList());
+        static final Role ADMIN_ROLE = new Role(1L, "ROLE_ADMIN", "Администратор", Collections.emptySet());
         static final String HASHED_PASSWORD = "$HASHED_PASSWORD$";
         static final User ADMIN_USER = User
                 .builder()
@@ -218,7 +215,7 @@ class AdminAccountInitializationServiceUnitTest {
                 .email("admin@gmail.com")
                 .password(HASHED_PASSWORD)
                 .isEmailVerified(true)
-                .roles(List.of(ADMIN_ROLE))
+                .roles(Set.of(ADMIN_ROLE))
                 .build();
 
     }

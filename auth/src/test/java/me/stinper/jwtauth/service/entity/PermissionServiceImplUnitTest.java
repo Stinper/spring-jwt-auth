@@ -223,7 +223,7 @@ class PermissionServiceImplUnitTest {
         final Long permissionId = 2L;
 
         when(permissionRepository.findById(permissionId)).thenReturn(Optional.of(testData.WRITE_PERMISSION));
-        when(roleRepository.existsByPermissions(Collections.singletonList(testData.WRITE_PERMISSION)))
+        when(roleRepository.existsByPermissions(Collections.singleton(testData.WRITE_PERMISSION)))
                 .thenReturn(false); // No related entities found
 
         //WHEN
@@ -239,7 +239,7 @@ class PermissionServiceImplUnitTest {
         final Long permissionId = 2L;
 
         when(permissionRepository.findById(permissionId)).thenReturn(Optional.of(testData.WRITE_PERMISSION));
-        when(roleRepository.existsByPermissions(Collections.singletonList(testData.WRITE_PERMISSION)))
+        when(roleRepository.existsByPermissions(Collections.singleton(testData.WRITE_PERMISSION)))
                 .thenReturn(true); // Related entities found
 
         //WHEN & THEN

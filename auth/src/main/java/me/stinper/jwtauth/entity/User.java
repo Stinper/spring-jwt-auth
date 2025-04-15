@@ -7,10 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.io.Serial;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -20,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class User implements JwtAuthUserDetails {
     @Serial
-    private static final long serialVersionUID = -8969997069460187532L;
+    private static final long serialVersionUID = -2442103282310823899L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -47,10 +44,11 @@ public class User implements JwtAuthUserDetails {
     @JoinTable(
         name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id", nullable = false),
-            inverseJoinColumns = @JoinColumn(name = "role_id", nullable = false)
+            inverseJoinColumns = @JoinColumn(name = "role_id", nullable = false),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "role_id"})
     )
     @ToString.Exclude
-    private List<Role> roles = new ArrayList<>();
+    private Set<Role> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @ToString.Exclude
@@ -68,7 +66,14 @@ public class User implements JwtAuthUserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.roles;
+        Set<GrantedAuthority> authorities = new HashSet<>();
+
+        for (Role role : this.roles) {
+            authorities.add(role);
+            authorities.addAll(role.getPermissions());
+        }
+
+        return authorities;
     }
 
     @Override

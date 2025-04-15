@@ -1,7 +1,10 @@
 package me.stinper.jwtauth.config;
 
 import lombok.RequiredArgsConstructor;
+import me.stinper.jwtauth.core.security.AuthorityChecker;
+import me.stinper.jwtauth.core.security.UserModelAuthorityChecker;
 import me.stinper.jwtauth.core.security.jwt.JwtAuthenticationFilter;
+import me.stinper.jwtauth.repository.UserRepository;
 import me.stinper.jwtauth.service.security.contract.UserSecurityService;
 import me.stinper.jwtauth.service.security.UserSecurityServiceImpl;
 import org.springframework.context.annotation.Bean;
@@ -64,14 +67,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserSecurityService userSecurityService() {
+    public UserSecurityService userSecurityService(AuthorityChecker authorityChecker, UserRepository userRepository) {
         /*
         Бин регистрируется таким способом, чтобы в контроллере в аннотации @PreAuthorize можно было
         использовать через @ именно интерфейс, а не конкретную реализацию. Если регистрировать бин
         через @Component над классом, для использования будет доступна только конкретная реализация,
         а интерфейс спринг просто не увидит
          */
-        return new UserSecurityServiceImpl();
+        return new UserSecurityServiceImpl(authorityChecker, userRepository);
     }
 
 }

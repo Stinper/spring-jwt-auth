@@ -3,7 +3,6 @@ package me.stinper.jwtauth.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -20,6 +19,7 @@ import me.stinper.jwtauth.dto.user.UserCreationRequest;
 import me.stinper.jwtauth.dto.user.UserDto;
 import me.stinper.jwtauth.service.entity.contract.UserPasswordService;
 import me.stinper.jwtauth.service.entity.contract.UserService;
+import me.stinper.jwtauth.service.security.contract.UserSecurityService;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
@@ -42,6 +42,7 @@ import java.util.UUID;
 public class UserController {
     private final UserService userService;
     private final UserPasswordService userPasswordService;
+    private final UserSecurityService userSecurityService;
     private final jakarta.validation.Validator validator;
 
     @GetMapping
@@ -55,6 +56,7 @@ public class UserController {
                     description = "Пользователь с этим правом может просматривать тех пользователей, чья учетная запись была деактивирована"
             )
     })
+    @PreAuthorize("@userSecurityService.isAllowedToFindAllUsers(principal)")
     @Operation(
             summary = "Получение всех пользователей",
             description = "Предназначен для получения всех пользователей в постраничном формате, т.е. с использованием пагинации",
@@ -65,13 +67,16 @@ public class UserController {
                     @Parameter(ref = "Authorization")
             }
     )
-    public ResponseEntity<Page<UserDto>> findAll(@ModelAttribute @ParameterObject EntityPaginationRequest entityPaginationRequest) {
+    public ResponseEntity<Page<UserDto>> findAll(@ModelAttribute @ParameterObject EntityPaginationRequest entityPaginationRequest,
+                                                 @AuthenticationPrincipal JwtAuthUserDetails user) {
         Set<ConstraintViolation<EntityPaginationRequest>> constraintViolations = this.validator.validate(entityPaginationRequest);
 
         if (!constraintViolations.isEmpty())
             throw new ConstraintViolationException(constraintViolations);
 
-        return ResponseEntity.ok(userService.findAll(entityPaginationRequest.buildPageableFromRequest()));
+        return ResponseEntity.ok(
+                userService.findAll(entityPaginationRequest.buildPageableFromRequest(), userSecurityService.chooseUserFilterStrategy(user))
+        );
     }
 
 
@@ -81,6 +86,7 @@ public class UserController {
             permission = "user.read.find-by-uuid",
             description = "Пользователь с этим правом может получить пользователя по его идентификатору"
     )
+    @PreAuthorize("@userSecurityService.isAllowedToFindUserByUUID(#uuid, principal)")
     @Operation(
             summary = "Получение пользователя по UUID",
             description = "Предназначен для получения одного пользователя по его уникальному идентификатору (UUID)",

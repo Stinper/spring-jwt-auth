@@ -11,14 +11,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.validation.Errors;
 import org.springframework.validation.SimpleErrors;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
@@ -143,7 +141,7 @@ class RoleCreationValidatorUnitTest {
 
         final Errors errors = new SimpleErrors(roleCreationRequest);
         final Set<String> permissions = roleCreationRequest.permissions();
-        final List<Permission> existingPermissions = List.of(
+        final Set<Permission> existingPermissions = Set.of(
                 new Permission(1L, "some.permission", null)
         );
 
@@ -186,7 +184,7 @@ class RoleCreationValidatorUnitTest {
 
         final Errors errors = new SimpleErrors(roleCreationRequest);
         final Set<String> permissions = roleCreationRequest.permissions();
-        final List<Permission> existingPermissions = List.of(
+        final Set<Permission> existingPermissions = Set.of(
                 new Permission(1L, "some.permission", null)
         );
 

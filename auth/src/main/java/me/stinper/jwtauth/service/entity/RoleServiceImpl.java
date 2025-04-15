@@ -129,7 +129,7 @@ public class RoleServiceImpl implements RoleService {
             throw new EntityValidationException(permissionListValidationErrors.getFieldErrors());
         }
 
-        List<Permission> permissionList = permissionRepository.findAllByPermissionIn(permissionUpdateRequest.permissions());
+        Set<Permission> permissionList = permissionRepository.findAllByPermissionIn(permissionUpdateRequest.permissions());
         role.setPermissions(permissionList);
         role = roleRepository.save(role);
 
@@ -165,6 +165,6 @@ public class RoleServiceImpl implements RoleService {
         if (role == null)
             return false;
 
-        return userRepository.existsByRoles(Collections.singletonList(role));
+        return userRepository.existsByRoles(Collections.singleton(role));
     }
 }

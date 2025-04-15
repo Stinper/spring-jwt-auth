@@ -5,8 +5,8 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "roles")
@@ -32,11 +32,12 @@ public class Role implements GrantedAuthority {
     @JoinTable(
             name = "roles_permissions",
             joinColumns = @JoinColumn(name = "role_id", nullable = false),
-            inverseJoinColumns = @JoinColumn(name = "permission_id", nullable = false)
+            inverseJoinColumns = @JoinColumn(name = "permission_id", nullable = false),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"role_id", "permission_id"})
     )
     @ToString.Exclude
     @Builder.Default
-    private List<Permission> permissions = new ArrayList<>();
+    private Set<Permission> permissions = new HashSet<>();
 
     @Override
     public String getAuthority() {

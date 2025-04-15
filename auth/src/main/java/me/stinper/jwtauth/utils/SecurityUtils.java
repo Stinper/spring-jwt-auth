@@ -2,12 +2,7 @@ package me.stinper.jwtauth.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import me.stinper.jwtauth.entity.User;
-import org.springframework.lang.NonNull;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.Collection;
 
 @Slf4j
 public final class SecurityUtils {
@@ -30,13 +25,5 @@ public final class SecurityUtils {
         }
 
         throw new IllegalStateException("Объект, содержащийся в контексте безопасности не является объектом типа [User]");
-    }
-
-    public static boolean hasAuthority(@NonNull UserDetails userDetails, @NonNull String name) {
-        Collection<? extends GrantedAuthority> userRoles = userDetails.getAuthorities();
-
-        return userRoles
-                .stream()
-                .anyMatch(role -> role.getAuthority().equals(name));
     }
 }

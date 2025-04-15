@@ -13,7 +13,7 @@ import me.stinper.jwtauth.exception.ResourceNotFoundException;
 import me.stinper.jwtauth.mapping.UserMapper;
 import me.stinper.jwtauth.repository.UserRepository;
 import me.stinper.jwtauth.service.authentication.contract.JwtService;
-import me.stinper.jwtauth.utils.MessageSourceHelper;
+import me.stinper.jwtauth.service.entity.support.UserFilterStrategy;
 import me.stinper.jwtauth.validation.UserCreationValidator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,10 +32,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.SimpleErrors;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -47,7 +44,6 @@ class UserServiceImplUnitTest {
     @Mock private UserMapper userMapper;
     @Mock private UserCreationValidator userCreationValidator;
     @Mock private PasswordEncoder passwordEncoder;
-    @Mock private MessageSourceHelper messageSourceHelper;
     @Mock private JwtService jwtService;
 
     @InjectMocks
@@ -72,18 +68,25 @@ class UserServiceImplUnitTest {
         when(userMapper.toUserDto(testData.SIMPLE_USER)).thenReturn(testData.SIMPLE_USER_DTO);
         when(userMapper.toUserDto(testData.USER_WITH_ROLES)).thenReturn(testData.USER_WITH_ROLES_DTO);
 
-        Pageable pageable = testData.NO_SORT_PAGINATION_REQUEST;
+        final Pageable pageable = testData.NO_SORT_PAGINATION_REQUEST;
+        final UserFilterStrategy userFilterStrategy = mock(UserFilterStrategy.class);
 
-        when(userRepository.findAllByDeactivatedAtIsNull(pageable)).thenReturn(
-                new PageImpl<>(
-                        List.of(testData.SIMPLE_USER, testData.USER_WITH_ROLES),
-                        pageable,
-                        2
-                )
+        final Page<User> userPage = new PageImpl<>(
+                List.of(testData.SIMPLE_USER, testData.USER_WITH_ROLES),
+                pageable,
+                2
+        );
+        final Page<User> filteredUserPage = new PageImpl<>(
+                List.of(testData.SIMPLE_USER, testData.USER_WITH_ROLES),
+                pageable,
+                2
         );
 
+        when(userRepository.findAll(pageable)).thenReturn(userPage);
+        when(userFilterStrategy.filterUsersPage(userPage)).thenReturn(filteredUserPage);
+
         //WHEN
-        Page<UserDto> users = userService.findAll(pageable);
+        Page<UserDto> users = userService.findAll(pageable, userFilterStrategy);
 
         //THEN
         assertThat(users)
@@ -91,7 +94,7 @@ class UserServiceImplUnitTest {
                 .containsAll(List.of(testData.SIMPLE_USER_DTO, testData.USER_WITH_ROLES_DTO))
                 .doesNotContain(testData.DEACTIVATED_USER_DTO);
 
-        verify(userRepository, times(1)).findAllByDeactivatedAtIsNull(pageable);
+        verify(userRepository).findAll(pageable);
     }
 
 
@@ -104,14 +107,14 @@ class UserServiceImplUnitTest {
     )
     void findAll_whenSortByNotExistentProperty_thenThrowsException() {
         //GIVEN
-        when(userRepository.findAllByDeactivatedAtIsNull(any()))
+        when(userRepository.findAll(any(Pageable.class)))
                 .thenThrow(
                         new PropertyReferenceException("nonExistentProperty", TypeInformation.OBJECT, Collections.emptyList())
                 );
 
         //WHEN & THEN
         assertThatExceptionOfType(NoSuchPropertyException.class)
-                .isThrownBy(() -> userService.findAll(Pageable.unpaged()))
+                .isThrownBy(() -> userService.findAll(mock(Pageable.class), mock(UserFilterStrategy.class)))
                 .satisfies(ex -> assertThat(
                         ex.getPropertyReferenceException().getPropertyName()).isEqualTo("nonExistentProperty")
                 );
@@ -273,8 +276,8 @@ class UserServiceImplUnitTest {
                 .email("thirduser@gmail.com")
                 .password("123")
                 .roles(
-                        List.of(
-                                new Role(1L, "ROLE_ADMIN", "Администратор", Collections.emptyList())
+                        Set.of(
+                                new Role(1L, "ROLE_ADMIN", "Администратор", Collections.emptySet())
                         )
                 )
                 .build();

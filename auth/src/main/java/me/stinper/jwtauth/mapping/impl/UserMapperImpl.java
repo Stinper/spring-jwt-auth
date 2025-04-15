@@ -25,6 +25,7 @@ public class UserMapperImpl implements UserMapper {
                 .email(user.getEmail())
                 .registeredAt(user.getRegisteredAt())
                 .isEmailVerified(user.getIsEmailVerified())
+                .deactivatedAt(user.getDeactivatedAt())
                 .roles(
                         Optional.ofNullable(user.getRoles())
                                 .map(roles ->

@@ -109,7 +109,7 @@ class RoleInitializationServiceUnitTest {
     @Test
     void initialize_whenIsAlreadyInitializedReturnsFalse_thenInitializeRole() {
         //GIVEN
-        final Role adminRole = new Role(1L, this.adminRoleName, this.adminRolePrefix, Collections.emptyList());
+        final Role adminRole = new Role(1L, this.adminRoleName, this.adminRolePrefix, Collections.emptySet());
 
         when(roleInitializationService.isAlreadyInitialized()).thenReturn(false);
         when(roleRepository.save(any())).thenReturn(adminRole);

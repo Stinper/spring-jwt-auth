@@ -12,8 +12,8 @@ import me.stinper.jwtauth.repository.PermissionRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -53,7 +53,7 @@ public class RoleMapperImpl implements RoleMapper {
                 .prefix(roleCreationRequest.prefix());
 
         if (roleCreationRequest.permissions() != null) {
-            List<Permission> permissions = permissionRepository.findAllByPermissionIn(roleCreationRequest.permissions());
+            Set<Permission> permissions = permissionRepository.findAllByPermissionIn(roleCreationRequest.permissions());
 
             roleBuilder.permissions(permissions);
         }

@@ -255,9 +255,9 @@ class RoleServiceImplUnitTest {
                 Set.of("some.permission")
         );
 
-        final Role existingRole = new Role(1L, roleName, "Администратор", Collections.emptyList());
+        final Role existingRole = new Role(1L, roleName, "Администратор", Collections.emptySet());
         final Role updatedRole = new Role(1L, roleName, "Администратор",
-                List.of(
+                Set.of(
                         new Permission(1L, "some.permission", null)
                 )
         );
@@ -271,7 +271,7 @@ class RoleServiceImplUnitTest {
         when(roleRepository.findByRoleNameIgnoreCase(roleName)).thenReturn(Optional.of(existingRole));
         when(permissionRepository.findAllByPermissionIn(request.permissions()))
                 .thenReturn(
-                        List.of(
+                        Set.of(
                                 new Permission(10L, "some.permission", null)
                         )
                 );
@@ -328,7 +328,7 @@ class RoleServiceImplUnitTest {
         final String roleName = testData.MANAGER_ROLE.getRoleName();
 
         when(roleRepository.findByRoleNameIgnoreCase(roleName)).thenReturn(Optional.of(testData.MANAGER_ROLE));
-        when(userRepository.existsByRoles(Collections.singletonList(testData.MANAGER_ROLE)))
+        when(userRepository.existsByRoles(Collections.singleton(testData.MANAGER_ROLE)))
                 .thenReturn(false); // No related entities found
 
         //WHEN
@@ -350,7 +350,7 @@ class RoleServiceImplUnitTest {
         final String roleName = testData.MANAGER_ROLE.getRoleName();
 
         when(roleRepository.findByRoleNameIgnoreCase(roleName)).thenReturn(Optional.of(testData.MANAGER_ROLE));
-        when(userRepository.existsByRoles(Collections.singletonList(testData.MANAGER_ROLE)))
+        when(userRepository.existsByRoles(Collections.singleton(testData.MANAGER_ROLE)))
                 .thenReturn(true); // Related entities found
 
         //WHEN & THEN
@@ -361,9 +361,9 @@ class RoleServiceImplUnitTest {
     }
 
     private static class TestData {
-        final Role ADMIN_ROLE = new Role(1L, "ROLE_ADMIN", "Администратор", Collections.emptyList());
-        final Role MANAGER_ROLE = new Role(2L, "ROLE_MANAGER", "Менеджер", Collections.emptyList());
-        final Role USER_ROLE = new Role(3L, "ROLE_USER", "Пользователь", Collections.emptyList());
+        final Role ADMIN_ROLE = new Role(1L, "ROLE_ADMIN", "Администратор", Collections.emptySet());
+        final Role MANAGER_ROLE = new Role(2L, "ROLE_MANAGER", "Менеджер", Collections.emptySet());
+        final Role USER_ROLE = new Role(3L, "ROLE_USER", "Пользователь", Collections.emptySet());
 
         final RoleDto ADMIN_ROLE_DTO = new RoleDto(1L, "ROLE_ADMIN", "Администратор", Collections.emptyList());
         final RoleDto MANAGER_ROLE_DTO = new RoleDto(2L, "ROLE_MANAGER", "Менеджер", Collections.emptyList());
