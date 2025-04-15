@@ -5,7 +5,9 @@ import me.stinper.jwtauth.core.security.AuthorityChecker;
 import me.stinper.jwtauth.core.security.UserModelAuthorityChecker;
 import me.stinper.jwtauth.core.security.jwt.JwtAuthenticationFilter;
 import me.stinper.jwtauth.repository.UserRepository;
+import me.stinper.jwtauth.service.security.PermissionSecurityServiceImpl;
 import me.stinper.jwtauth.service.security.RoleSecurityServiceImpl;
+import me.stinper.jwtauth.service.security.contract.PermissionSecurityService;
 import me.stinper.jwtauth.service.security.contract.RoleSecurityService;
 import me.stinper.jwtauth.service.security.contract.UserSecurityService;
 import me.stinper.jwtauth.service.security.UserSecurityServiceImpl;
@@ -82,6 +84,11 @@ public class SecurityConfig {
     @Bean
     public RoleSecurityService roleSecurityService(AuthorityChecker authorityChecker) {
         return new RoleSecurityServiceImpl(authorityChecker);
+    }
+
+    @Bean
+    public PermissionSecurityService permissionSecurityService(AuthorityChecker authorityChecker) {
+        return new PermissionSecurityServiceImpl(authorityChecker);
     }
 
 }

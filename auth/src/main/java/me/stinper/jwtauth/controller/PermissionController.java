@@ -21,6 +21,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -42,6 +43,7 @@ public class PermissionController {
             permission = "permission.read.find-all-permissions",
             description = "Пользователь с этим правом может получать список всех существующих в системе прав доступа"
     )
+    @PreAuthorize("@permissionSecurityService.isAllowedToFindAllPermissions(principal)")
     @Operation(
             summary = "Получение всех прав доступа",
             description = "Предназначен для получения всех прав доступа в постраничном формате, т.е. с использованием пагинации",
@@ -69,6 +71,7 @@ public class PermissionController {
             permission = "permission.read.find-by-id",
             description = "Пользователь с этим правом может получить информацию о конкретном праве доступа по его идентификатору"
     )
+    @PreAuthorize("@permissionSecurityService.isAllowedToFindPermissionById(#id, principal)")
     @Operation(
             summary = "Получение права доступа по идентификатору",
             responses = {
@@ -105,6 +108,7 @@ public class PermissionController {
             permission = "permission.create.create-permission",
             description = "Пользователь с этим правом может создать новое право доступа"
     )
+    @PreAuthorize("@permissionSecurityService.isAllowedToCreatePermission(principal)")
     @Operation(
             summary = "Создание права доступа",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -146,6 +150,7 @@ public class PermissionController {
             permission = "permission.update.description",
             description = "Пользователь с этим правом может обновлять описание права доступа по его идентификатору"
     )
+    @PreAuthorize("@permissionSecurityService.isAllowedToUpdatePermissionDescription(#id, principal)")
     @Operation(
             summary = "Обновление описания права доступа",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -196,6 +201,7 @@ public class PermissionController {
             permission = "permission.delete.delete-by-id",
             description = "Пользователь с этим правом может удалить право доступа по его идентификатору"
     )
+    @PreAuthorize("@permissionSecurityService.isAllowedToDeletePermission(#id, principal)")
     @Operation(
             summary = "Удаление права доступа по идентификатору",
             responses = {
