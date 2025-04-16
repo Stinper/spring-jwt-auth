@@ -1,0 +1,619 @@
+{
+	"info": {
+		"_postman_id": "fcdcb7f2-15ec-43f6-9490-a79d6472bbc3",
+		"name": "JWT-Auth",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27489777"
+	},
+	"item": [
+		{
+			"name": "users",
+			"item": [
+				{
+					"name": "Find All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/users?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find By UUID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/users/{{$randomUUID}}",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"users",
+								"{{$randomUUID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete By UUID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/users/{{$randomUUID}}",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"users",
+								"{{$randomUUID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"\",\r\n    \"password\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/users",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"old_password\": \"\",\r\n    \"new_password\": \"\",\r\n    \"repeat_new_password\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/users/password",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"users",
+								"password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "roles",
+			"item": [
+				{
+					"name": "Find All Roles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/roles?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"roles"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find By Name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/roles/ROLE_ADMIN",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"roles",
+								"ROLE_ADMIN"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete By Name",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/roles/ROLE_ADMIN",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"roles",
+								"ROLE_ADMIN"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Role Permissions",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"permissions\": [\r\n        \"\",\r\n        \"\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/roles/ROLE_ADMIN/permissions",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"roles",
+								"ROLE_ADMIN",
+								"permissions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"role_name\": \"\",\r\n    \"prefix\": \"\",\r\n    \"permissions\": [\r\n        \"\",\r\n        \"\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/roles",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"roles"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "permissions",
+			"item": [
+				{
+					"name": "Find All Permissions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/permissions?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"permissions"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/permissions/1",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"permissions",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete By ID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/permissions/1",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"permissions",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Permission",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"permission\": \"\",\r\n    \"description\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/permissions",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"permissions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Permission Description",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"description\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/permissions/1/description",
+							"protocol": "http",
+							"host": [
+								"{{SERVER_HOST}}"
+							],
+							"port": "{{SERVER_PORT}}",
+							"path": [
+								"api",
+								"v1",
+								"jwt-auth",
+								"permissions",
+								"1",
+								"description"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Login",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Idempotency-Key",
+						"value": "e47aaefc-ee66-4203-9277-a3a5e7c83326",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"\",\r\n    \"password\": \"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/login",
+					"protocol": "http",
+					"host": [
+						"{{SERVER_HOST}}"
+					],
+					"port": "{{SERVER_PORT}}",
+					"path": [
+						"api",
+						"v1",
+						"jwt-auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh access token",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"refresh_token\": \"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/tokens/refresh-access-token",
+					"protocol": "http",
+					"host": [
+						"{{SERVER_HOST}}"
+					],
+					"port": "{{SERVER_PORT}}",
+					"path": [
+						"api",
+						"v1",
+						"jwt-auth",
+						"tokens",
+						"refresh-access-token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/api/v1/jwt-auth/logout",
+					"protocol": "http",
+					"host": [
+						"{{SERVER_HOST}}"
+					],
+					"port": "{{SERVER_PORT}}",
+					"path": [
+						"api",
+						"v1",
+						"jwt-auth",
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "JWKS",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{SERVER_HOST}}:{{SERVER_PORT}}/.well-known/jwks.json",
+					"protocol": "http",
+					"host": [
+						"{{SERVER_HOST}}"
+					],
+					"port": "{{SERVER_PORT}}",
+					"path": [
+						".well-known",
+						"jwks.json"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{ACCESS_TOKEN}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "SERVER_PORT",
+			"value": "8080",
+			"type": "string"
+		},
+		{
+			"key": "SERVER_HOST",
+			"value": "localhost",
+			"type": "string"
+		},
+		{
+			"key": "ACCESS_TOKEN",
+			"value": null,
+			"type": "string"
+		}
+	]
+}
