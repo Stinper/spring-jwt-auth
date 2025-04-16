@@ -6,6 +6,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import me.stinper.jwtauth.core.security.jwt.service.JwtClaimsService;
+import me.stinper.jwtauth.core.security.jwt.service.JwtVerificationService;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,9 +23,11 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 import java.io.IOException;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final JwtProvider jwtProvider;
+    private final JwtClaimsService jwtClaimsService;
+    private final JwtVerificationService jwtVerificationService;
     private final UserDetailsService userDetailsService;
     private final HandlerExceptionResolver handlerExceptionResolver;
 
@@ -34,10 +39,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = this.getTokenFromRequest(request);
 
             if (token != null) {
-                jwtProvider.verifyAccessToken(token);
+                Claims tokenClaims = jwtClaimsService.parseTokenClaims(token);
 
-                Claims claims = jwtProvider.accessTokenClaims(token);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(claims.get("email", String.class));
+                final String tokenType = tokenClaims.get("type", String.class);
+
+                if (tokenType == null) {
+                    log.atError().log("[#doFilterInternal]: Предоставленный токен не имеет в полезной нагрузке обязательного поля 'type' " +
+                            "\n\tЗначение токена: {}", token
+                    );
+
+                    throw new JwtException("");
+                }
+
+                if (!tokenType.equals("ACCESS")) {
+                    log.atWarn().log("""
+                            [#doFilterInternal]: Тип токена не соответствует ожидаемому\s
+                            \tОжидался тип: ACCESS\s
+                            \tФактический тип: {}""", tokenType
+                    );
+
+                    throw new JwtException("");
+                }
+
+                jwtVerificationService.verifyTokenSignature(token);
+
+                log.atDebug().log("[#doFilterInternal]: Access-токен успешно верифицирован \n\tЗначение токена: {}", token);
+
+                UserDetails userDetails = userDetailsService.loadUserByUsername(tokenClaims.get("email", String.class));
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

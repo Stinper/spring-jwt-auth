@@ -3,11 +3,16 @@ package me.stinper.jwtauth.core.security.permission;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.stinper.jwtauth.JwtAuthApplication;
+import me.stinper.jwtauth.core.security.permission.annotation.OperationPermission;
 import me.stinper.jwtauth.core.security.permission.annotation.PermissionScan;
+import me.stinper.jwtauth.core.security.permission.annotation.Permissions;
+import me.stinper.jwtauth.entity.Permission;
 import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,5 +33,22 @@ public abstract class AbstractPermissionScanner implements PermissionScanner {
                 + Arrays.toString(permissionScan.packages()));
 
         return Arrays.asList(permissionScan.packages());
+    }
+
+    protected Permission handleOperationPermissionAnnotation(OperationPermission permission) {
+        return Permission.builder()
+                .permission(permission.permission())
+                .description(permission.description())
+                .build();
+    }
+
+    protected Set<Permission> handlePermissionsAnnotation(Permissions permissions) {
+        Set<Permission> result = new HashSet<>(permissions.permissions().length);
+
+        for (OperationPermission permission : permissions.permissions()) {
+            result.add(handleOperationPermissionAnnotation(permission));
+        }
+
+        return result;
     }
 }

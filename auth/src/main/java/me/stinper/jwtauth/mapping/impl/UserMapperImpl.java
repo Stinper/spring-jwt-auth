@@ -51,7 +51,7 @@ public class UserMapperImpl implements UserMapper {
                 .build();
 
         log.atDebug().log(() -> "[#toUser]: Выполнен маппинг UserCreationRequest -> User. " +
-                "\nUserCreationRequest: " + userCreationRequest + "\nUser: " + user);
+                "\nUserCreationRequest: " + userCreationRequest.email() + "\nUser: " + user);
 
         return user;
     }

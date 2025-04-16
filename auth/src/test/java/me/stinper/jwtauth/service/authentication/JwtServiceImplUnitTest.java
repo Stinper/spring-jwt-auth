@@ -1,7 +1,8 @@
 package me.stinper.jwtauth.service.authentication;
 
 import io.jsonwebtoken.JwtException;
-import me.stinper.jwtauth.core.security.jwt.JwtProvider;
+import me.stinper.jwtauth.core.security.jwt.service.JwtCreationService;
+import me.stinper.jwtauth.core.security.jwt.service.JwtVerificationService;
 import me.stinper.jwtauth.dto.JwtResponse;
 import me.stinper.jwtauth.dto.RefreshAccessTokenRequest;
 import me.stinper.jwtauth.entity.RefreshToken;
@@ -26,14 +27,15 @@ import static org.mockito.Mockito.*;
 @DisplayName("Unit Test for JwtServiceImpl class")
 class JwtServiceImplUnitTest {
     @Mock private RefreshTokenRepository refreshTokenRepository;
-    @Mock private JwtProvider jwtProvider;
+    @Mock private JwtVerificationService jwtVerificationService;
+    @Mock private JwtCreationService jwtCreationService;
     private final Duration refreshTokenExpiration = Duration.ofDays(14);
 
     private JwtServiceImpl jwtService;
 
     @BeforeEach
     void setUp() {
-        this.jwtService = new JwtServiceImpl(refreshTokenRepository, jwtProvider);
+        this.jwtService = new JwtServiceImpl(refreshTokenRepository, jwtVerificationService, jwtCreationService);
         jwtService.setRefreshTokenExpiration(refreshTokenExpiration);
     }
 
@@ -64,11 +66,11 @@ class JwtServiceImplUnitTest {
 
         //No Exception -> Verification Successful
         doNothing()
-                .when(jwtProvider)
-                .verifyRefreshToken(refreshTokenFromRequest);
+                .when(jwtVerificationService)
+                .verifyTokenSignature(refreshTokenFromRequest);
 
         when(refreshTokenRepository.findByToken(refreshTokenFromRequest)).thenReturn(Optional.of(refreshToken));
-        when(jwtProvider.generateAccessToken(user)).thenReturn(newAccessToken);
+        when(jwtCreationService.createAccessToken(user)).thenReturn(newAccessToken);
 
         //WHEN
         JwtResponse jwtResponse = jwtService.refreshAccessToken(validRefreshAccessTokenRequest);
@@ -77,9 +79,9 @@ class JwtServiceImplUnitTest {
         assertThat(jwtResponse.accessToken()).isEqualTo(newAccessToken);
         assertThat(jwtResponse.refreshToken()).isEqualTo(refreshTokenFromRequest);
 
-        verify(jwtProvider).verifyRefreshToken(refreshTokenFromRequest);
+        verify(jwtVerificationService).verifyTokenSignature(refreshTokenFromRequest);
         verify(refreshTokenRepository).findByToken(refreshTokenFromRequest);
-        verify(jwtProvider).generateAccessToken(user);
+        verify(jwtCreationService).createAccessToken(user);
     }
 
 
@@ -98,8 +100,8 @@ class JwtServiceImplUnitTest {
 
         //No Exception -> Verification Successful
         doNothing()
-                .when(jwtProvider)
-                .verifyRefreshToken(invalidRefreshAccessTokenRequest.refreshToken());
+                .when(jwtVerificationService)
+                .verifyTokenSignature(invalidRefreshAccessTokenRequest.refreshToken());
 
         when(refreshTokenRepository.findByToken(anyString())).thenReturn(Optional.empty());
 
@@ -107,7 +109,7 @@ class JwtServiceImplUnitTest {
         assertThatExceptionOfType(JwtException.class)
                 .isThrownBy(() -> jwtService.refreshAccessToken(invalidRefreshAccessTokenRequest));
 
-        verify(jwtProvider, never()).generateAccessToken(any());
+        verifyNoInteractions(jwtCreationService);
     }
 
 
@@ -126,15 +128,15 @@ class JwtServiceImplUnitTest {
 
         //Exception -> Verification Failed
         doThrow(JwtException.class)
-                .when(jwtProvider)
-                .verifyRefreshToken(invalidRefreshAccessTokenRequest.refreshToken());
+                .when(jwtVerificationService)
+                .verifyTokenSignature(invalidRefreshAccessTokenRequest.refreshToken());
 
 
         //WHEN & THEN
         assertThatThrownBy(() -> jwtService.refreshAccessToken(invalidRefreshAccessTokenRequest))
                 .isInstanceOf(JwtException.class);
 
-        verify(jwtProvider, never()).generateAccessToken(any());
+        verifyNoInteractions(jwtCreationService);
     }
 
 
@@ -150,8 +152,8 @@ class JwtServiceImplUnitTest {
                 .password("123")
                 .build();
 
-        when(jwtProvider.generateAccessToken(user)).thenReturn(accessToken);
-        when(jwtProvider.generateRefreshToken(user)).thenReturn(refreshToken);
+        when(jwtCreationService.createAccessToken(user)).thenReturn(accessToken);
+        when(jwtCreationService.createRefreshToken(user)).thenReturn(refreshToken);
 
         //WHEN
         JwtResponse jwtResponse = jwtService.generateTokensPair(user);
@@ -163,6 +165,8 @@ class JwtServiceImplUnitTest {
         verify(refreshTokenRepository).save(
                 argThat(token -> token.getUser().equals(user) && token.getToken().equals(refreshToken))
         );
+        verify(jwtCreationService).createAccessToken(user);
+        verify(jwtCreationService).createRefreshToken(user);
     }
 
 

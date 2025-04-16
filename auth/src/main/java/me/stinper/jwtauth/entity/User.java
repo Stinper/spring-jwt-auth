@@ -27,6 +27,7 @@ public class User implements JwtAuthUserDetails {
     private String email;
 
     @Column(name = "password", nullable = false)
+    @ToString.Exclude
     private String password;
 
     @Column(name = "registered_at", nullable = false, insertable = false, updatable = false)

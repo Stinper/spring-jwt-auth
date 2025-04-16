@@ -6,9 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.stinper.commons.api.response.Problem;
 import me.stinper.jwtauth.core.error.ApiErrorCode;
 import me.stinper.jwtauth.core.error.IdempotencyKeyErrorCode;
-import me.stinper.jwtauth.exception.IdempotencyKeyExpiredException;
-import me.stinper.jwtauth.exception.RelatedEntityExistsException;
-import me.stinper.jwtauth.exception.ResourceNotFoundException;
+import me.stinper.jwtauth.exception.*;
 import me.stinper.jwtauth.utils.MessageSourceHelper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,31 +30,32 @@ public class CommonExceptionsHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Problem> handleResourceNotFoundException(ResourceNotFoundException e) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(
-                        new Problem(
-                                ApiErrorCode.NOT_FOUND.getCode(),
-                                messageSourceHelper.getLocalizedMessage(e.getErrorMessageCode(), e.getArgs())
-                        )
-                );
+        return this.handleBaseApiException(e, HttpStatus.NOT_FOUND, ApiErrorCode.NOT_FOUND.getCode());
     }
 
     @ExceptionHandler(IdempotencyKeyExpiredException.class)
     public ResponseEntity<Problem> handleIdempotencyKeyExpiredException(IdempotencyKeyExpiredException e) {
+        return this.handleBaseApiException(e, HttpStatus.BAD_REQUEST, IdempotencyKeyErrorCode.KEY_IS_EXPIRED.getCode());
+    }
+
+    @ExceptionHandler(JsonProcessingException.class)
+    public ResponseEntity<Problem> handleJsonProcessingException(JsonProcessingException e) {
+        return this.handleAsInternalServerError();
+    }
+
+
+    private ResponseEntity<Problem> handleBaseApiException(BaseApiException e, HttpStatus status, String errorCode) {
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(status)
                 .body(
                         new Problem(
-                                IdempotencyKeyErrorCode.KEY_IS_EXPIRED.getCode(),
+                                errorCode,
                                 messageSourceHelper.getLocalizedMessage(e.getErrorMessageCode(), e.getArgs())
                         )
                 );
     }
 
-
-    @ExceptionHandler(JsonProcessingException.class)
-    public ResponseEntity<Problem> handleJsonProcessingException(JsonProcessingException e) {
+    private ResponseEntity<Problem> handleAsInternalServerError() {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(

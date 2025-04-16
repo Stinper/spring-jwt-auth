@@ -40,10 +40,10 @@ public class PermissionScannerImpl extends AbstractPermissionScanner {
 
             for (Method method : methods) {
                 if (method.isAnnotationPresent(OperationPermission.class))
-                    result.add(handleSinglePermissionAnnotation(method.getAnnotation(OperationPermission.class)));
+                    result.add(this.handleOperationPermissionAnnotation(method.getAnnotation(OperationPermission.class)));
 
                 if (method.isAnnotationPresent(Permissions.class))
-                    result.addAll(handlePermissionsAnnotation(method.getAnnotation(Permissions.class)));
+                    result.addAll(this.handlePermissionsAnnotation(method.getAnnotation(Permissions.class)));
             }
         }
 
@@ -51,22 +51,4 @@ public class PermissionScannerImpl extends AbstractPermissionScanner {
 
         return result;
     }
-
-    private Permission handleSinglePermissionAnnotation(OperationPermission permission) {
-        return Permission.builder()
-                .permission(permission.permission())
-                .description(permission.description())
-                .build();
-    }
-
-    private Set<Permission> handlePermissionsAnnotation(Permissions permissions) {
-        Set<Permission> result = new HashSet<>(permissions.permissions().length);
-
-        for (OperationPermission permission : permissions.permissions()) {
-            result.add(handleSinglePermissionAnnotation(permission));
-        }
-
-        return result;
-    }
-
 }

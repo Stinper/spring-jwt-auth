@@ -5,8 +5,9 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import me.stinper.jwtauth.core.security.jwt.JwtProvider;
 import me.stinper.jwtauth.core.security.jwt.JwtAuthUserDetails;
+import me.stinper.jwtauth.core.security.jwt.service.JwtCreationService;
+import me.stinper.jwtauth.core.security.jwt.service.JwtVerificationService;
 import me.stinper.jwtauth.dto.JwtResponse;
 import me.stinper.jwtauth.dto.RefreshAccessTokenRequest;
 import me.stinper.jwtauth.entity.RefreshToken;
@@ -25,7 +26,8 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class JwtServiceImpl implements JwtService {
     private final RefreshTokenRepository refreshTokenRepository;
-    private final JwtProvider jwtProvider;
+    private final JwtVerificationService jwtVerificationService;
+    private final JwtCreationService jwtCreationService;
 
     @Value("${app.auth.security.jwt.refresh-token-expiration}")
     @Setter(AccessLevel.PACKAGE)
@@ -37,7 +39,7 @@ public class JwtServiceImpl implements JwtService {
 
         log.atDebug().log("[#refreshAccessToken]: Начало выполнение метода \n\tRefresh-токен: '{}'", refreshToken);
 
-        jwtProvider.verifyRefreshToken(refreshToken);
+        jwtVerificationService.verifyTokenSignature(refreshToken);
 
         log.atDebug().log("[#refreshAccessToken]: Refresh-токен успешно верифицирован \n\tЗначение токена: '{}'", refreshToken);
 
@@ -51,7 +53,7 @@ public class JwtServiceImpl implements JwtService {
                     return new JwtException(""); //Сообщение не нужно, оно формируется в обработчике ошибок
                 });
 
-        String newAccessToken = jwtProvider.generateAccessToken(token.getUser());
+        String newAccessToken = jwtCreationService.createAccessToken(token.getUser());
 
         log.atInfo().log(
                 () -> "[#refreshAccessToken]: Для пользователя с эл. почтой '"
@@ -67,12 +69,12 @@ public class JwtServiceImpl implements JwtService {
     public JwtResponse generateTokensPair(@NonNull JwtAuthUserDetails userDetails) {
         log.atDebug().log("[#generateTokensPair]: Начало выполнение метода. UUID: '{}'", userDetails.getUuid());
 
-        String accessToken = jwtProvider.generateAccessToken(userDetails);
+        String accessToken = jwtCreationService.createAccessToken(userDetails);
         log.atDebug().log("[#generateTokensPair]: Для пользователя '{}' был сгенерирован Access-токен \n\tЗначение токена: '{}'",
                 userDetails.getUuid(), accessToken
         );
 
-        String refreshToken = jwtProvider.generateRefreshToken(userDetails);
+        String refreshToken = jwtCreationService.createRefreshToken(userDetails);
         log.atDebug().log("[#generateTokensPair]: Для пользователя '{}' был сгенерирован Refresh-токен \n\tЗначение токена: '{}'",
                 userDetails.getUuid(), refreshToken
         );
