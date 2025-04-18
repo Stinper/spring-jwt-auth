@@ -94,7 +94,7 @@ ConstraintViolationProblemDetails buildErrorResponseDetails(ConstraintViolation<
 
 Интерфейс `PropertyPathExtractor` отвечает за формирование пути к полю, в значении которого была найдена ошибка
 
-#### </> Интерфейс `ConstraintViolationErrorResponseProvider` имеет следующий вид
+#### </> Интерфейс `PropertyPathExtractor` имеет следующий вид
 
 ```java
 public interface PropertyPathExtractor {
