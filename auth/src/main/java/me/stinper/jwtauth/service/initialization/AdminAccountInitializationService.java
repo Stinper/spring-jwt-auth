@@ -39,6 +39,10 @@ public class AdminAccountInitializationService implements InitializationService<
     @Setter(AccessLevel.PACKAGE)
     private String adminRoleName;
 
+    @Value("${app.auth.security.initialization.admin-account-init-mode}")
+    @Setter(AccessLevel.PACKAGE)
+    private InitializationMode adminAccountInitializationMode;
+
     @Override
     @Transactional
     public User initialize() {
@@ -84,5 +88,10 @@ public class AdminAccountInitializationService implements InitializationService<
             return !userRepository.isTableEmpty();
 
         return userRepository.existsByEmailIgnoreCase(this.adminAccountEmail);
+    }
+
+    @Override
+    public InitializationMode getInitializationMode() {
+        return this.adminAccountInitializationMode;
     }
 }

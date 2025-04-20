@@ -49,7 +49,7 @@ class AdminAccountInitializationServiceUnitTest {
     @Test
     void isAlreadyInitialized_whenInitializationModeIsOnTableEmpty_thenChecksIsTableEmpty() {
         //GIVEN
-        when(adminAccountInitializationService.getInitializationMode()).thenReturn(InitializationService.InitializationMode.ON_TABLE_EMPTY);
+        doReturn(InitializationService.InitializationMode.ON_TABLE_EMPTY).when(adminAccountInitializationService).getInitializationMode();
         when(userRepository.isTableEmpty()).thenReturn(true);
 
         //WHEN
@@ -66,7 +66,7 @@ class AdminAccountInitializationServiceUnitTest {
     @Test
     void isAlreadyInitialized_whenInitializationModeIsOnTableEmpty_thenChecksIsUserExist() {
         //GIVEN
-        when(adminAccountInitializationService.getInitializationMode()).thenReturn(InitializationService.InitializationMode.ON_RELOAD);
+        doReturn(InitializationService.InitializationMode.ON_RELOAD).when(adminAccountInitializationService).getInitializationMode();
         when(userRepository.existsByEmailIgnoreCase(this.adminAccountEmail)).thenReturn(false);
 
         //WHEN
@@ -83,8 +83,7 @@ class AdminAccountInitializationServiceUnitTest {
     @Test
     void isAlreadyInitialized_whenInitializationModeIsOnTableEmptyAndTableIsNotEmpty_thenReturnsTrue() {
         //GIVEN
-        when(this.adminAccountInitializationService.getInitializationMode())
-                .thenReturn(InitializationService.InitializationMode.ON_TABLE_EMPTY);
+        doReturn(InitializationService.InitializationMode.ON_TABLE_EMPTY).when(adminAccountInitializationService).getInitializationMode();
         when(userRepository.isTableEmpty()).thenReturn(false); //Table is NOT empty
 
         //WHEN
@@ -99,8 +98,7 @@ class AdminAccountInitializationServiceUnitTest {
     @Test
     void isAlreadyInitialized_whenInitializationModeIsOnReloadAndRoleAlreadyExists_thenReturnsTrue() {
         //GIVEN
-        when(this.adminAccountInitializationService.getInitializationMode())
-                .thenReturn(InitializationService.InitializationMode.ON_RELOAD);
+        doReturn(InitializationService.InitializationMode.ON_RELOAD).when(adminAccountInitializationService).getInitializationMode();
         when(userRepository.existsByEmailIgnoreCase(this.adminAccountEmail)).thenReturn(true); //User already exists
 
         //WHEN
@@ -115,7 +113,7 @@ class AdminAccountInitializationServiceUnitTest {
     @Test
     void initialize_whenIsAlreadyInitializedReturnsTrue_thenReturnsNull() {
         //GIVEN
-        when(adminAccountInitializationService.isAlreadyInitialized()).thenReturn(true);
+        doReturn(true).when(adminAccountInitializationService).isAlreadyInitialized();
 
         //WHEN
         User initializedUser = adminAccountInitializationService.initialize();
@@ -131,7 +129,7 @@ class AdminAccountInitializationServiceUnitTest {
     @Test
     void initialize_whenAdminRoleSuccessfullyInitialized_thenNeverCallRoleRepository() {
         //GIVEN
-        when(adminAccountInitializationService.isAlreadyInitialized()).thenReturn(false);
+        doReturn(false).when(adminAccountInitializationService).isAlreadyInitialized();
 
         when(roleInitializationService.initialize()).thenReturn(TestData.ADMIN_ROLE);
         when(passwordEncoder.encode(this.adminAccountPassword)).thenReturn(TestData.HASHED_PASSWORD);
@@ -153,7 +151,7 @@ class AdminAccountInitializationServiceUnitTest {
     @Test
     void initialize_whenAdminRoleInitializationServiceReturnsNull_thenCallRoleRepositoryToTryFindRole() {
         //GIVEN
-        when(adminAccountInitializationService.isAlreadyInitialized()).thenReturn(false);
+        doReturn(false).when(adminAccountInitializationService).isAlreadyInitialized();
 
         when(roleInitializationService.initialize()).thenReturn(null);
         when(roleRepository.findByRoleNameIgnoreCase(this.adminRoleName)).thenReturn(Optional.of(TestData.ADMIN_ROLE));
@@ -176,7 +174,7 @@ class AdminAccountInitializationServiceUnitTest {
     @Test
     void initialize_whenAdminRoleInitializationServiceReturnsNullAndAdminRoleNotFound_thenAdminAccountContainsEmptyRolesList() {
         //GIVEN
-        when(adminAccountInitializationService.isAlreadyInitialized()).thenReturn(false);
+        doReturn(false).when(adminAccountInitializationService).isAlreadyInitialized();
 
         when(roleInitializationService.initialize()).thenReturn(null);
         when(roleRepository.findByRoleNameIgnoreCase(this.adminRoleName)).thenReturn(Optional.empty());

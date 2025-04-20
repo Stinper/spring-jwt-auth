@@ -14,7 +14,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.function.BooleanSupplier;
 
 import static org.assertj.core.api.Assertions.*;
 

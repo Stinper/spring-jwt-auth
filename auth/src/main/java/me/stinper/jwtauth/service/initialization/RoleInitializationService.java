@@ -26,6 +26,10 @@ public class RoleInitializationService implements InitializationService<Role> {
     @Setter(AccessLevel.PACKAGE)
     private String adminRolePrefix;
 
+    @Value("${app.auth.security.initialization.admin-role-init-mode}")
+    @Setter(AccessLevel.PACKAGE)
+    private InitializationMode roleInitializationMode;
+
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Role initialize() {
@@ -55,5 +59,10 @@ public class RoleInitializationService implements InitializationService<Role> {
             return !roleRepository.isTableEmpty();
 
         return roleRepository.existsByRoleNameIgnoreCase(this.adminRoleName);
+    }
+
+    @Override
+    public InitializationMode getInitializationMode() {
+        return this.roleInitializationMode;
     }
 }

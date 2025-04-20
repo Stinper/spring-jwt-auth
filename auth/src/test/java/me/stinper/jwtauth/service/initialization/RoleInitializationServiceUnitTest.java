@@ -35,7 +35,7 @@ class RoleInitializationServiceUnitTest {
     @Test
     void isAlreadyInitialized_whenInitializationModeIsOnTableEmpty_thenChecksIsTableEmpty() {
         //GIVEN
-        when(this.roleInitializationService.getInitializationMode()).thenReturn(InitializationService.InitializationMode.ON_TABLE_EMPTY);
+        doReturn(InitializationService.InitializationMode.ON_TABLE_EMPTY).when(roleInitializationService).getInitializationMode();
         when(roleRepository.isTableEmpty()).thenReturn(true);
 
         //WHEN
@@ -50,7 +50,7 @@ class RoleInitializationServiceUnitTest {
     @Test
     void isAlreadyInitialized_whenInitializationModeIsOnReload_thenChecksIsRoleExist() {
         //GIVEN
-        when(this.roleInitializationService.getInitializationMode()).thenReturn(InitializationService.InitializationMode.ON_RELOAD);
+        doReturn(InitializationService.InitializationMode.ON_RELOAD).when(roleInitializationService).getInitializationMode();
         when(roleRepository.existsByRoleNameIgnoreCase(this.adminRoleName)).thenReturn(false);
 
         //WHEN
@@ -65,7 +65,7 @@ class RoleInitializationServiceUnitTest {
     @Test
     void isAlreadyInitialized_whenInitializationModeIsOnTableEmptyAndTableIsNotEmpty_thenReturnsTrue() {
         //GIVEN
-        when(this.roleInitializationService.getInitializationMode()).thenReturn(InitializationService.InitializationMode.ON_TABLE_EMPTY);
+        doReturn(InitializationService.InitializationMode.ON_TABLE_EMPTY).when(roleInitializationService).getInitializationMode();
         when(roleRepository.isTableEmpty()).thenReturn(false); //Table is NOT empty
 
         //WHEN
@@ -80,7 +80,7 @@ class RoleInitializationServiceUnitTest {
     @Test
     void isAlreadyInitialized_whenInitializationModeIsOnReloadAndRoleAlreadyExists_thenReturnsTrue() {
         //GIVEN
-        when(this.roleInitializationService.getInitializationMode()).thenReturn(InitializationService.InitializationMode.ON_RELOAD);
+        doReturn(InitializationService.InitializationMode.ON_RELOAD).when(roleInitializationService).getInitializationMode();
         when(roleRepository.existsByRoleNameIgnoreCase(this.adminRoleName)).thenReturn(true); //Role already exists
 
         //WHEN
@@ -95,7 +95,7 @@ class RoleInitializationServiceUnitTest {
     @Test
     void initialize_whenIsAlreadyInitializedReturnsTrue_thenReturnsNull() {
         //GIVEN
-        when(roleInitializationService.isAlreadyInitialized()).thenReturn(true);
+        doReturn(true).when(roleInitializationService).isAlreadyInitialized();
 
         //WHEN
         Role adminRole = roleInitializationService.initialize();
@@ -111,7 +111,7 @@ class RoleInitializationServiceUnitTest {
         //GIVEN
         final Role adminRole = new Role(1L, this.adminRoleName, this.adminRolePrefix, Collections.emptySet());
 
-        when(roleInitializationService.isAlreadyInitialized()).thenReturn(false);
+        doReturn(false).when(roleInitializationService).isAlreadyInitialized();
         when(roleRepository.save(any())).thenReturn(adminRole);
 
         //WHEN

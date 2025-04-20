@@ -1,12 +1,15 @@
 package me.stinper.jwtauth.service.initialization;
 
 import jakarta.annotation.PostConstruct;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.stinper.jwtauth.core.security.permission.PermissionScanner;
 import me.stinper.jwtauth.entity.Permission;
 import me.stinper.jwtauth.repository.PermissionRepository;
 import me.stinper.jwtauth.service.initialization.contract.InitializationService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +27,10 @@ public class PermissionInitializationService implements InitializationService<Li
     private final PermissionScanner permissionScanner;
     private Set<Permission> scannedPermissions;
     private List<Permission> existingPermissions;
+
+    @Value("${app.auth.security.initialization.permissions-list-init-mode}")
+    @Setter(AccessLevel.PACKAGE)
+    private InitializationMode permissionsInitializationMode;
 
     @PostConstruct
     void init() throws Exception {
@@ -72,7 +79,7 @@ public class PermissionInitializationService implements InitializationService<Li
 
     @Override
     public InitializationMode getInitializationMode() {
-        return InitializationMode.ON_RELOAD;
+        return this.permissionsInitializationMode;
     }
 
 

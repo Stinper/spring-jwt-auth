@@ -34,7 +34,7 @@ class PermissionInitializationServiceUnitTest {
     @Test
     void isAlreadyInitialized_whenInitializationModeIsOnTableEmpty_thenChecksIsTableEmpty() {
         //GIVEN
-        when(permissionInitializationService.getInitializationMode()).thenReturn(InitializationService.InitializationMode.ON_TABLE_EMPTY);
+        doReturn(InitializationService.InitializationMode.ON_TABLE_EMPTY).when(permissionInitializationService).getInitializationMode();
         when(permissionRepository.isTableEmpty()).thenReturn(true);
 
         //WHEN
@@ -57,7 +57,7 @@ class PermissionInitializationServiceUnitTest {
         final Set<Permission> scannedPermissions = Set.of(firstPermission, secondPermission);
         final List<Permission> existingPermissions = List.of(firstPermission, secondPermission);
 
-        when(permissionInitializationService.getInitializationMode()).thenReturn(InitializationService.InitializationMode.ON_RELOAD);
+        doReturn(InitializationService.InitializationMode.ON_RELOAD).when(permissionInitializationService).getInitializationMode();
         when(permissionScanner.resolveCandidatePackages()).thenReturn(List.of("pack"));
 
         //Permissions are similar in list and set -> method must return true
