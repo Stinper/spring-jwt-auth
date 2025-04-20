@@ -49,10 +49,12 @@ public class User implements JwtAuthUserDetails {
             uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "role_id"})
     )
     @ToString.Exclude
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @ToString.Exclude
+    @Builder.Default
     private List<RefreshToken> refreshTokens = new ArrayList<>();
 
 
