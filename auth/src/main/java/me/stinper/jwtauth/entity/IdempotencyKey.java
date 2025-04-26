@@ -1,17 +1,17 @@
 package me.stinper.jwtauth.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "idempotency_keys")
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,6 +21,7 @@ public class IdempotencyKey {
     private Long id;
 
     @Column(name = "key", nullable = false, unique = true)
+    @EqualsAndHashCode.Include
     private UUID key;
 
     @Column(name = "issued_at", nullable = false, insertable = false, updatable = false)

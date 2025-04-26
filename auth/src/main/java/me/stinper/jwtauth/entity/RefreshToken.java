@@ -7,7 +7,10 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "refresh_tokens")
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,6 +25,7 @@ public class RefreshToken {
     private User user;
 
     @Column(name = "token", nullable = false, columnDefinition = "TEXT", unique = true)
+    @EqualsAndHashCode.Include
     private String token;
 
     @Column(name = "created_at", insertable = false, updatable = false)

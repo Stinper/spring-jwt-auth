@@ -1,17 +1,17 @@
 package me.stinper.jwtauth.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.io.Serial;
 
 @Entity
 @Table(name = "permissions")
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -24,6 +24,7 @@ public class Permission implements GrantedAuthority {
     private Long id;
 
     @Column(name = "permission", nullable = false, unique = true)
+    @EqualsAndHashCode.Include
     private String permission;
 
     @Column(name = "description", columnDefinition = "TEXT")

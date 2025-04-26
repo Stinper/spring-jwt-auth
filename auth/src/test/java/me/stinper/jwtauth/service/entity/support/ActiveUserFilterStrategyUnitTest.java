@@ -27,10 +27,13 @@ class ActiveUserFilterStrategyUnitTest {
     void filterUsersPage_whenInputPageContainsDeactivatedUsers_thenReturnsPageWithoutThem() {
         //GIVEN
         final User firstUser = User.builder()
+                .email("firstUser@gmail.com")
                 .deactivatedAt(Instant.now())
                 .build();
 
-        final User secondUser = User.builder().build();
+        final User secondUser = User.builder()
+                .email("secondUser@gmail.com")
+                .build();
         final Pageable pageable = mock(Pageable.class);
 
         Page<User> pageToFilter = new PageImpl<>(

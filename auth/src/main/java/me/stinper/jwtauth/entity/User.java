@@ -11,7 +11,10 @@ import java.util.*;
 
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,6 +27,7 @@ public class User implements JwtAuthUserDetails {
     private UUID uuid;
 
     @Column(name = "email", nullable = false, unique = true, length = Constraints.EMAIL_FIELD_MAX_LENGTH)
+    @EqualsAndHashCode.Include
     private String email;
 
     @Column(name = "password", nullable = false)

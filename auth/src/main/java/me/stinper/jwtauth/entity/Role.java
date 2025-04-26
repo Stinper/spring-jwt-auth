@@ -10,7 +10,10 @@ import java.util.Set;
 
 @Entity
 @Table(name = "roles")
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,6 +26,7 @@ public class Role implements GrantedAuthority {
     private Long id;
 
     @Column(name = "role_name", nullable = false, unique = true, length = Constraints.ROLE_NAME_FIELD_MAX_LENGTH)
+    @EqualsAndHashCode.Include
     private String roleName;
 
     @Column(name = "prefix", nullable = false, length = Constraints.PREFIX_FIELD_MAX_LENGTH)
